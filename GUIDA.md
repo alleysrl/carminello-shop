@@ -81,9 +81,9 @@ ma finché Supabase non è collegato compare una striscia gialla e non si può o
    non ci sono segreti, solo la chiave pubblica di Supabase).
 3. Su github.com apri il repository → **Settings → Pages** → *Source: Deploy from a branch* → Branch `main`,
    cartella `/ (root)` → Save. Dopo 1–2 minuti il sito è online a un indirizzo tipo
-   `https://NOMEACCOUNT.github.io/carminello/`.
+   `https://alleysrl.github.io/carminello-shop/`.
 4. Torna su Supabase → **Authentication → URL Configuration** e metti quell'indirizzo come *Site URL*
-   e `https://NOMEACCOUNT.github.io/carminello/account.html` fra le *Redirect URLs*.
+   e `https://alleysrl.github.io/carminello-shop/account.html` fra le *Redirect URLs*.
 
 Ogni volta che si modifica qualcosa nella cartella: GitHub Desktop → Commit → **Push origin**. In un minuto è online.
 
