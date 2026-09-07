@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1c1512">
+  <meta name="robots" content="noindex">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="icon" href="assets/icons/favicon-64.png" sizes="64x64" type="image/png">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-title" content="Carminello">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <title>Completa l'ordine — Carminello</title>
+</head>
+<body>
+  <header id="site-header"></header>
+  <div id="cfg-banner" hidden></div>
+
+  <main class="wrap">
+    <div class="page-head">
+      <h1 data-i18n="co.title">Completa l'ordine</h1>
+      <div class="steps-bar"><span data-i18n="co.step1">Consegna</span><span data-i18n="co.step2">Pagamento</span><span data-i18n="co.step3">Riepilogo</span></div>
+    </div>
+
+    <div id="need-login" class="notice warn" hidden><span data-i18n="co.needLogin">Per ordinare devi accedere o registrarti.</span> <a href="account.html?next=checkout.html" data-i18n="acc.login">Accedi</a></div>
+    <div id="empty" class="notice info" hidden><span data-i18n="co.errEmpty">Il carrello è vuoto.</span> <a href="shop.html" data-i18n="nav.shop">Ordina</a></div>
+
+    <form id="form" class="shop-grid" hidden novalidate>
+      <div>
+        <div class="card">
+          <h3 data-i18n="co.step1">Consegna</h3>
+          <div class="field" id="f-company-wrap" hidden><label data-i18n="co.company">Ragione sociale</label><input id="f-company" autocomplete="organization"></div>
+          <div class="row">
+            <div class="field"><label data-i18n="co.name">Nome</label><input id="f-nome" required autocomplete="given-name"></div>
+            <div class="field"><label data-i18n="co.surname">Cognome</label><input id="f-cognome" required autocomplete="family-name"></div>
+          </div>
+          <div class="field"><label data-i18n="co.phone">Telefono</label><input id="f-tel" type="tel" required autocomplete="tel"></div>
+          <div class="field"><label data-i18n="co.address">Via e numero civico</label><input id="f-via" required autocomplete="street-address"></div>
+          <div class="row three">
+            <div class="field"><label data-i18n="co.city">Città</label><input id="f-citta" required autocomplete="address-level2"></div>
+            <div class="field"><label data-i18n="co.zip">CAP</label><input id="f-cap" required inputmode="numeric" pattern="[0-9]{5}" autocomplete="postal-code"></div>
+            <div class="field"><label data-i18n="co.prov">Provincia</label><input id="f-prov" required maxlength="2" style="text-transform:uppercase" autocomplete="address-level1"></div>
+          </div>
+          <div class="field"><label data-i18n="co.notes">Note per la consegna (facoltative)</label><textarea id="f-note" data-i18n-ph="co.notesPh" placeholder="Es. citofono, orari, piano…"></textarea></div>
+        </div>
+
+        <div class="card">
+          <h3 data-i18n="co.payTitle">Come vuoi pagare?</h3>
+          <div class="choice">
+            <label><input type="radio" name="pm" value="carta" checked><span><b data-i18n="co.card">Carta di credito o debito</b><small data-i18n="co.cardD">Pagamento sicuro con SumUp. L'ordine parte subito.</small></span></label>
+            <label><input type="radio" name="pm" value="bonifico"><span><b data-i18n="co.bank">Bonifico bancario</b><small data-i18n="co.bankD">Ti mostriamo l'IBAN. Spediamo appena riceviamo il bonifico.</small></span></label>
+            <label id="pm-cod" hidden><input type="radio" name="pm" value="contrassegno"><span><b data-i18n="co.cod">Contrassegno</b><small data-i18n="co.codD">Paghi alla consegna, in contanti. Supplemento di 5 €.</small></span></label>
+          </div>
+        </div>
+      </div>
+
+      <aside class="summary">
+        <div class="card">
+          <h3 data-i18n="co.step3">Riepilogo</h3>
+          <div id="righe"></div>
+          <div class="line"><span data-i18n="common.subtotal">Subtotale</span><span id="s-sub"></span></div>
+          <div class="line"><span data-i18n="common.shipping">Spedizione</span><span id="s-ship"></span></div>
+          <div class="line" id="s-cod-row" hidden><span data-i18n="common.cod">Supplemento contrassegno</span><span id="s-cod"></span></div>
+          <div class="line total"><span data-i18n="common.total">Totale</span><span id="s-tot"></span></div>
+          <p class="muted small" data-i18n="common.vat">Prezzi IVA inclusa</p>
+          <div class="field"><label class="check"><input type="checkbox" id="f-terms"><span data-i18n-html="co.terms"></span></label></div>
+          <div class="err" id="form-err" hidden></div>
+          <button class="btn lg block" type="submit" id="submit" data-i18n="co.submit">Conferma l'ordine</button>
+          <p class="center" style="margin:.8rem 0 0"><a href="shop.html" class="small" data-i18n="common.back">Indietro</a></p>
+        </div>
+      </aside>
+    </form>
+  </main>
+
+  <footer id="site-footer"></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/i18n.js"></script>
+  <script src="assets/js/cart.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    (function () {
+      const el = id => document.getElementById(id);
+      let catalogo = [];
+      function metodo() { return document.querySelector("input[name=pm]:checked").value; }
+
+      function renderTotals() {
+        const t = Cart.totali(catalogo, metodo());
+        el("righe").innerHTML = t.righe.map(r => '<div class="line"><span>' + r.qty + ' × ' + App.esc(Lang.get() === "en" && r.nome_en ? r.nome_en : r.nome) + '</span><span>' + App.money(r.totale) + '</span></div>').join("");
+        el("s-sub").textContent = App.money(t.subtotale);
+        el("s-ship").textContent = t.spedizione ? App.money(t.spedizione) : Lang.t("common.free");
+        el("s-cod-row").hidden = !t.supplemento; el("s-cod").textContent = App.money(t.supplemento);
+        el("s-tot").textContent = App.money(t.totale);
+        return t;
+      }
+
+      async function load() {
+        if (!App.configured) return;
+        if (!App.user) { el("need-login").hidden = false; el("form").hidden = true; return; }
+        el("need-login").hidden = true;
+        catalogo = await App.catalogo();
+        const t = Cart.totali(catalogo);
+        if (!t.cartoni) { el("empty").hidden = false; el("form").hidden = true; return; }
+        el("empty").hidden = true; el("form").hidden = false;
+        const p = App.profile || {};
+        el("pm-cod").hidden = !App.b2bAttivo();
+        el("f-company-wrap").hidden = !App.isB2B();
+        el("f-company").value = p.ragione_sociale || "";
+        el("f-nome").value = p.nome || ""; el("f-cognome").value = p.cognome || ""; el("f-tel").value = p.telefono || "";
+        const a = p.indirizzo || {};
+        el("f-via").value = a.via || ""; el("f-citta").value = a.citta || ""; el("f-cap").value = a.cap || ""; el("f-prov").value = a.prov || "";
+        renderTotals();
+      }
+      document.querySelectorAll("input[name=pm]").forEach(r => r.addEventListener("change", renderTotals));
+      document.addEventListener("lang:change", renderTotals);
+      App.onAuth(load); App.ready.then(load);
+
+      el("form").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const err = el("form-err"); err.hidden = true;
+        const req = ["f-nome", "f-cognome", "f-tel", "f-via", "f-citta", "f-cap", "f-prov"];
+        if (req.some(id => !el(id).value.trim()) || !/^[0-9]{5}$/.test(el("f-cap").value.trim())) { err.textContent = Lang.t("co.errFields"); err.hidden = false; return; }
+        if (!el("f-terms").checked) { err.textContent = Lang.t("co.errTerms"); err.hidden = false; return; }
+        const t = Cart.totali(catalogo, metodo());
+        if (!t.cartoni) { err.textContent = Lang.t("co.errEmpty"); err.hidden = false; return; }
+        const btn = el("submit"); btn.disabled = true; btn.textContent = Lang.t("co.submitting");
+        const indirizzo = {
+          ragione_sociale: el("f-company").value.trim(), nome: el("f-nome").value.trim(), cognome: el("f-cognome").value.trim(),
+          telefono: el("f-tel").value.trim(), via: el("f-via").value.trim(), citta: el("f-citta").value.trim(),
+          cap: el("f-cap").value.trim(), prov: el("f-prov").value.trim().toUpperCase(), paese: "IT"
+        };
+        const righe = t.righe.map(r => ({ product_id: r.id, qty: r.qty }));
+        const { data, error } = await App.db.rpc("crea_ordine", { p_righe: righe, p_metodo: metodo(), p_indirizzo: indirizzo, p_note: el("f-note").value.trim(), p_lingua: Lang.get() });
+        if (error) {
+          console.error(error);
+          err.textContent = (error.message || Lang.t("common.error")).replace(/^.*?: /, ""); err.hidden = false;
+          btn.disabled = false; btn.textContent = Lang.t("co.submit"); return;
+        }
+        Cart.clear();
+        // salva l'indirizzo nel profilo per la prossima volta (silenzioso)
+        App.db.rpc("aggiorna_profilo", { p_dati: { nome: indirizzo.nome, cognome: indirizzo.cognome, telefono: indirizzo.telefono, indirizzo: { via: indirizzo.via, citta: indirizzo.citta, cap: indirizzo.cap, prov: indirizzo.prov } } }).then(() => {});
+        location.href = "ordine.html?id=" + data.id + (metodo() === "carta" ? "&paga=1" : "");
+      });
+    })();
+  </script>
+</body>
+</html>

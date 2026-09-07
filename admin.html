@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1c1512">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="icon" href="assets/icons/favicon-64.png" sizes="64x64" type="image/png">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-title" content="Carminello">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <meta name="robots" content="noindex">
+  <title>Pannello — Carminello</title>
+</head>
+<body>
+  <header id="site-header"></header>
+
+  <main class="wrap">
+    <div class="page-head"><span class="kicker">Riservato</span><h1>Pannello Carminello</h1></div>
+    <div id="denied" class="notice warn" hidden>Questa pagina è riservata al titolare. <a href="account.html">Accedi</a> con l'account amministratore.</div>
+
+    <div id="panel" hidden>
+      <div class="stat-grid">
+        <div class="stat"><b id="st-pagare">0</b><span>Da pagare</span></div>
+        <div class="stat"><b id="st-spedire">0</b><span>Da spedire</span></div>
+        <div class="stat"><b id="st-b2b">0</b><span>Locali da attivare</span></div>
+        <div class="stat"><b id="st-mese">0 €</b><span>Incassato nel mese</span></div>
+      </div>
+
+      <div class="tabs"><button class="on" data-tab="ordini">Ordini</button><button data-tab="clienti">Clienti</button><button data-tab="prodotti">Prodotti</button><button data-tab="impostazioni">Impostazioni</button></div>
+
+      <!-- ORDINI -->
+      <section id="tab-ordini">
+        <div class="filters" id="ord-filters">
+          <button class="on" data-f="attivi">Da gestire</button><button data-f="da_pagare">Da pagare</button><button data-f="da_spedire">Da spedire</button><button data-f="spedito">Spediti</button><button data-f="annullato">Annullati</button><button data-f="tutti">Tutti</button>
+        </div>
+        <div class="table-wrap"><table class="data"><thead><tr><th>N.</th><th>Data</th><th>Cliente</th><th>Pagamento</th><th>Totale</th><th>Stato</th><th>Azioni</th></tr></thead><tbody id="ord-body"></tbody></table></div>
+      </section>
+
+      <!-- CLIENTI -->
+      <section id="tab-clienti" hidden>
+        <div class="filters" id="cli-filters"><button class="on" data-f="b2b_pending">Locali da attivare</button><button data-f="b2b">Tutti i locali</button><button data-f="b2c">Privati</button><button data-f="tutti">Tutti</button></div>
+        <p class="muted small">Per attivare un locale: scrivi il prezzo del cartone da 20 e premi <b>Salva e attiva</b>. Da quel momento il cliente vede il suo prezzo e ordina da solo.</p>
+        <div class="table-wrap"><table class="data"><thead><tr><th>Cliente</th><th>Contatti</th><th>Dati fiscali</th><th>Prezzo riservato</th><th>Stato</th><th></th></tr></thead><tbody id="cli-body"></tbody></table></div>
+      </section>
+
+      <!-- PRODOTTI -->
+      <section id="tab-prodotti" hidden>
+        <p class="muted small">Il prezzo qui è quello per i privati. Per i locali il prezzo si imposta cliente per cliente nella scheda Clienti. Un prodotto "non attivo" sparisce dal negozio ma resta negli ordini vecchi.</p>
+        <div class="table-wrap"><table class="data"><thead><tr><th>Nome (IT)</th><th>Nome (EN)</th><th>Canale</th><th>Pezzi</th><th>Prezzo privati</th><th>Attivo</th><th></th></tr></thead><tbody id="prod-body"></tbody></table></div>
+      </section>
+
+      <!-- IMPOSTAZIONI -->
+      <section id="tab-impostazioni" hidden>
+        <div class="shop-grid">
+          <div>
+            <div class="card">
+              <h3>Bonifico bancario</h3>
+              <p class="muted small">Questi dati vengono mostrati al cliente che sceglie il bonifico e nell'email di conferma.</p>
+              <div class="field"><label>Intestatario</label><input id="i-intestatario"></div>
+              <div class="field"><label>IBAN</label><input id="i-iban" style="font-family:monospace"></div>
+              <div class="row"><div class="field"><label>Banca (facoltativo)</label><input id="i-banca"></div><div class="field"><label>BIC/SWIFT (facoltativo)</label><input id="i-bic"></div></div>
+              <button class="btn" id="i-save-bonifico">Salva bonifico</button>
+            </div>
+            <div class="card">
+              <h3>Avvisi</h3>
+              <div class="field"><label>Email che riceve gli avvisi di nuovi ordini e registrazioni</label><input id="i-email" type="email"></div>
+              <button class="btn" id="i-save-notifiche">Salva email</button>
+            </div>
+          </div>
+          <div>
+            <div class="card">
+              <h3>Spedizione</h3>
+              <p class="muted small">Fasce in base al numero di cartoni. L'ultima riga (senza "fino a") vale per tutti i cartoni oltre la fascia precedente.</p>
+              <table class="data" id="i-sped"><thead><tr><th>Fino a (cartoni)</th><th>Costo €</th><th></th></tr></thead><tbody></tbody></table>
+              <p style="margin:.8rem 0 0"><button class="btn sm ghost" id="i-sped-add">+ Aggiungi fascia</button> <button class="btn sm" id="i-save-sped">Salva spedizione</button></p>
+            </div>
+            <div class="card">
+              <h3>Contrassegno</h3>
+              <div class="field"><label>Supplemento € (solo locali)</label><input id="i-cod" type="number" step="0.01" min="0" style="max-width:140px"></div>
+              <button class="btn" id="i-save-cod">Salva supplemento</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div id="modal" class="modal" hidden><div class="modal-in"><div id="modal-body"></div><p style="margin:1.2rem 0 0;text-align:right"><button class="btn sm ghost" id="modal-close">Chiudi</button></p></div></div>
+
+  <footer id="site-footer"></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/i18n.js"></script>
+  <script src="assets/js/cart.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    (function () {
+      const el = id => document.getElementById(id);
+      let ordini = [], clienti = [], prodotti = [], ordF = "attivi", cliF = "b2b_pending";
+      const PM = { carta: "Carta", bonifico: "Bonifico", contrassegno: "Contrassegno" };
+      const ST = { da_pagare: "Da pagare", da_spedire: "Da spedire", spedito: "Spedito", annullato: "Annullato" };
+      const money = App.money, esc = App.esc;
+
+      // tabs
+      document.querySelectorAll("[data-tab]").forEach(b => b.addEventListener("click", () => {
+        document.querySelectorAll("[data-tab]").forEach(x => x.classList.toggle("on", x === b));
+        ["ordini", "clienti", "prodotti", "impostazioni"].forEach(t => el("tab-" + t).hidden = b.getAttribute("data-tab") !== t);
+      }));
+      el("modal-close").onclick = () => el("modal").hidden = true;
+      function modal(html) { el("modal-body").innerHTML = html; el("modal").hidden = false; }
+
+      // ---------- ORDINI ----------
+      async function loadOrdini() {
+        const { data, error } = await App.db.from("orders").select("*, profiles(email, nome, cognome, ragione_sociale, tipo, telefono)").order("created_at", { ascending: false }).limit(500);
+        if (error) { App.toast(error.message, "err"); return; }
+        ordini = data || []; renderOrdini(); renderStats();
+      }
+      function nomeCliente(o) {
+        const p = o.profiles || {}, a = o.indirizzo || {};
+        return esc(p.ragione_sociale || a.ragione_sociale || ((p.nome || a.nome || "") + " " + (p.cognome || a.cognome || "")).trim() || p.email || "—");
+      }
+      function renderOrdini() {
+        const list = ordini.filter(o => ordF === "tutti" ? true : ordF === "attivi" ? (o.stato === "da_pagare" || o.stato === "da_spedire") : o.stato === ordF);
+        el("ord-body").innerHTML = list.length ? list.map(o => `<tr>
+          <td><b>${o.numero}</b></td>
+          <td class="small">${App.dateFmt(o.created_at)}</td>
+          <td>${nomeCliente(o)}<br><span class="small muted">${o.tipo === "b2b" ? "Locale" : "Privato"} · ${esc((o.profiles || {}).email || "")}</span></td>
+          <td>${PM[o.metodo_pagamento]}<br><span class="pill ${o.pagato ? "paid" : "unpaid"}">${o.pagato ? "Pagato" : "Non pagato"}</span></td>
+          <td><b>${money(o.totale)}</b></td>
+          <td><span class="pill ${o.stato}">${ST[o.stato]}</span></td>
+          <td><div class="actions">
+            <button class="btn sm ghost" data-det="${o.id}">Dettagli</button>
+            ${!o.pagato && o.stato !== "annullato" ? `<button class="btn sm basil" data-paid="${o.id}">Segna pagato</button>` : ""}
+            ${!o.pagato && o.metodo_pagamento === "carta" && o.stato !== "annullato" ? `<button class="btn sm ghost" data-verify="${o.id}">Verifica SumUp</button>` : ""}
+            ${o.stato === "da_spedire" ? `<button class="btn sm" data-ship="${o.id}">Segna spedito</button>` : ""}
+            ${o.stato !== "annullato" && o.stato !== "spedito" ? `<button class="btn sm ghost" data-cancel="${o.id}">Annulla</button>` : ""}
+            ${o.stato === "annullato" ? `<button class="btn sm ghost" data-restore="${o.id}">Ripristina</button>` : ""}
+          </div></td></tr>`).join("") : '<tr><td colspan="7" class="muted">Nessun ordine.</td></tr>';
+        const B = el("ord-body");
+        B.querySelectorAll("[data-det]").forEach(b => b.onclick = () => dettaglio(b.getAttribute("data-det")));
+        B.querySelectorAll("[data-paid]").forEach(b => b.onclick = () => aggiorna(b.getAttribute("data-paid"), null, true));
+        B.querySelectorAll("[data-ship]").forEach(b => b.onclick = () => aggiorna(b.getAttribute("data-ship"), "spedito", null));
+        B.querySelectorAll("[data-cancel]").forEach(b => b.onclick = () => { if (confirm("Annullare questo ordine?")) aggiorna(b.getAttribute("data-cancel"), "annullato", null); });
+        B.querySelectorAll("[data-restore]").forEach(b => b.onclick = () => { const o = ordini.find(x => x.id === b.getAttribute("data-restore")); aggiorna(o.id, o.pagato || o.metodo_pagamento === "contrassegno" ? "da_spedire" : "da_pagare", null); });
+        B.querySelectorAll("[data-verify]").forEach(b => b.onclick = async () => { b.disabled = true; const { data, error } = await App.db.functions.invoke("sumup-verifica", { body: { order_id: b.getAttribute("data-verify") } }); App.toast(error ? "Errore: " + error.message : (data && data.pagato ? "Pagamento confermato da SumUp" : "SumUp: pagamento non ancora ricevuto (" + ((data && data.status) || "?") + ")"), error ? "err" : ""); loadOrdini(); });
+      }
+      async function aggiorna(id, stato, pagato) {
+        const { error } = await App.db.rpc("admin_aggiorna_ordine", { p_id: id, p_stato: stato, p_pagato: pagato });
+        if (error) App.toast(error.message, "err"); else { App.toast("Ordine aggiornato", "ok"); loadOrdini(); }
+      }
+      function dettaglio(id) {
+        const o = ordini.find(x => x.id === id); const a = o.indirizzo || {}, p = o.profiles || {};
+        modal(`<h2 style="margin-top:0">Ordine ${o.numero}</h2>
+          <dl class="kv">
+            <dt>Data</dt><dd>${App.dateFmt(o.created_at)}</dd>
+            <dt>Cliente</dt><dd>${nomeCliente(o)} (${o.tipo === "b2b" ? "locale" : "privato"})<br>${esc(p.email || "")} · ${esc(a.telefono || p.telefono || "")}</dd>
+            <dt>Consegna</dt><dd>${esc([a.ragione_sociale, (a.nome || "") + " " + (a.cognome || ""), a.via, (a.cap || "") + " " + (a.citta || "") + " (" + (a.prov || "") + ")"].filter(x => x && x.trim()).join(", "))}</dd>
+            <dt>Note</dt><dd>${esc(o.note || "—")}</dd>
+            <dt>Pagamento</dt><dd>${PM[o.metodo_pagamento]} · ${o.pagato ? "pagato" + (o.pagato_il ? " il " + App.dateFmt(o.pagato_il) : "") : "non pagato"}${o.sumup_checkout_id ? "<br><span class='small muted'>SumUp: " + esc(o.sumup_checkout_id) + "</span>" : ""}</dd>
+            <dt>Stato</dt><dd><span class="pill ${o.stato}">${ST[o.stato]}</span></dd>
+          </dl>
+          <h3>Prodotti</h3>
+          ${(o.righe || []).map(r => '<div class="line" style="display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px dashed var(--line)"><span>' + r.qty + ' × ' + esc(r.nome) + ' <span class="muted small">(' + money(r.prezzo) + ' cad.)</span></span><b>' + money(r.totale) + '</b></div>').join("")}
+          <div style="display:flex;justify-content:space-between;padding:.3rem 0"><span>Spedizione</span><span>${money(o.spedizione)}</span></div>
+          ${Number(o.supplemento) ? '<div style="display:flex;justify-content:space-between;padding:.3rem 0"><span>Contrassegno</span><span>' + money(o.supplemento) + '</span></div>' : ''}
+          <div style="display:flex;justify-content:space-between;padding:.5rem 0;font-weight:700;font-size:1.2rem"><span>Totale</span><span style="color:var(--terra)">${money(o.totale)}</span></div>`);
+      }
+      el("ord-filters").querySelectorAll("button").forEach(b => b.onclick = () => { ordF = b.getAttribute("data-f"); el("ord-filters").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); renderOrdini(); });
+
+      // ---------- CLIENTI ----------
+      async function loadClienti() {
+        const [{ data: p, error }, { data: pr }] = await Promise.all([
+          App.db.from("profiles").select("*, prezzi_cliente(product_id, prezzo)").order("created_at", { ascending: false }),
+          App.db.from("products").select("*").eq("canale", "b2b").order("ordine")
+        ]);
+        if (error) { App.toast(error.message, "err"); return; }
+        clienti = p || []; window._prodB2b = pr || []; renderClienti(); renderStats();
+      }
+      function renderClienti() {
+        const prodB2b = window._prodB2b || [];
+        const list = clienti.filter(c => cliF === "tutti" ? true : cliF === "b2c" ? c.tipo === "b2c" : cliF === "b2b" ? c.tipo === "b2b" : (c.tipo === "b2b" && !c.approvato));
+        el("cli-body").innerHTML = list.length ? list.map(c => {
+          const prezzi = {}; (c.prezzi_cliente || []).forEach(x => prezzi[x.product_id] = x.prezzo);
+          const priceInputs = c.tipo === "b2b" ? prodB2b.map(p => `<label class="small" style="margin:.2rem 0">${esc(p.nome_it)}</label><input type="number" step="0.01" min="0" data-price="${c.id}|${p.id}" value="${prezzi[p.id] != null ? prezzi[p.id] : ""}" placeholder="€ a cartone" style="max-width:150px">`).join("") : '<span class="muted small">—</span>';
+          return `<tr>
+            <td><b>${esc(c.ragione_sociale || ((c.nome || "") + " " + (c.cognome || "")))}</b><br><span class="small muted">${c.tipo === "b2b" ? "Locale" : "Privato"} · dal ${App.dateFmt(c.created_at).split(",")[0]}</span>${c.ruolo === "admin" ? ' <span class="pill paid">admin</span>' : ""}</td>
+            <td class="small">${esc(c.email || "")}<br>${esc(c.telefono || "")}${c.indirizzo && c.indirizzo.citta ? "<br>" + esc(c.indirizzo.citta) : ""}</td>
+            <td class="small">${c.tipo === "b2b" ? "P.IVA " + esc(c.piva || "—") + "<br>SDI " + esc(c.sdi || "—") + "<br>PEC " + esc(c.pec || "—") : "—"}</td>
+            <td>${priceInputs}</td>
+            <td>${c.tipo === "b2b" ? '<span class="pill ' + (c.approvato ? "paid" : "unpaid") + '">' + (c.approvato ? "Attivo" : "Da attivare") + '</span>' : ""}</td>
+            <td>${c.tipo === "b2b" ? '<div class="actions"><button class="btn sm basil" data-save="' + c.id + '" data-appr="1">Salva e attiva</button>' + (c.approvato ? '<button class="btn sm ghost" data-save="' + c.id + '" data-appr="0">Sospendi</button>' : "") + "</div>" : ""}</td>
+          </tr>`;
+        }).join("") : '<tr><td colspan="6" class="muted">Nessun cliente.</td></tr>';
+        el("cli-body").querySelectorAll("[data-save]").forEach(b => b.onclick = async () => {
+          const uid = b.getAttribute("data-save"), appr = b.getAttribute("data-appr") === "1";
+          const prezzi = {}; let missing = false;
+          el("cli-body").querySelectorAll('[data-price^="' + uid + '|"]').forEach(i => { const pid = i.getAttribute("data-price").split("|")[1]; if (i.value === "") missing = true; else prezzi[pid] = Number(i.value); });
+          if (appr && missing) { App.toast("Inserisci il prezzo prima di attivare", "err"); return; }
+          const { error } = await App.db.rpc("admin_imposta_cliente", { p_user_id: uid, p_approvato: appr, p_prezzi: prezzi });
+          if (error) App.toast(error.message, "err"); else { App.toast(appr ? "Cliente attivato" : "Cliente sospeso", "ok"); loadClienti(); }
+        });
+      }
+      el("cli-filters").querySelectorAll("button").forEach(b => b.onclick = () => { cliF = b.getAttribute("data-f"); el("cli-filters").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); renderClienti(); });
+
+      // ---------- PRODOTTI ----------
+      async function loadProdotti() {
+        const { data, error } = await App.db.from("products").select("*").order("ordine");
+        if (error) { App.toast(error.message, "err"); return; }
+        prodotti = data || [];
+        el("prod-body").innerHTML = prodotti.map(p => `<tr>
+          <td><input data-p="${p.id}|nome_it" value="${esc(p.nome_it)}"></td>
+          <td><input data-p="${p.id}|nome_en" value="${esc(p.nome_en || "")}"></td>
+          <td>${p.canale === "b2b" ? "Locali" : "Privati"}</td>
+          <td><input type="number" min="1" data-p="${p.id}|pezzi" value="${p.pezzi}" style="max-width:80px"></td>
+          <td>${p.canale === "b2c" ? '<input type="number" step="0.01" min="0" data-p="' + p.id + '|prezzo" value="' + (p.prezzo != null ? p.prezzo : "") + '" style="max-width:110px">' : '<span class="muted small">per cliente</span>'}</td>
+          <td><input type="checkbox" data-p="${p.id}|attivo" ${p.attivo ? "checked" : ""} style="width:22px;height:22px"></td>
+          <td><button class="btn sm" data-psave="${p.id}">Salva</button></td></tr>`).join("");
+        el("prod-body").querySelectorAll("[data-psave]").forEach(b => b.onclick = async () => {
+          const id = b.getAttribute("data-psave"); const dati = { id };
+          el("prod-body").querySelectorAll('[data-p^="' + id + '|"]').forEach(i => { const k = i.getAttribute("data-p").split("|")[1]; dati[k] = i.type === "checkbox" ? i.checked : (i.type === "number" ? (i.value === "" ? null : Number(i.value)) : i.value.trim()); });
+          const { error } = await App.db.rpc("admin_salva_prodotto", { p_dati: dati });
+          if (error) App.toast(error.message, "err"); else { App.toast("Prodotto salvato", "ok"); loadProdotti(); }
+        });
+      }
+
+      // ---------- IMPOSTAZIONI ----------
+      let imp = {};
+      async function loadImpostazioni() {
+        const { data, error } = await App.db.from("impostazioni").select("*");
+        if (error) { App.toast(error.message, "err"); return; }
+        imp = {}; (data || []).forEach(r => imp[r.chiave] = r.valore);
+        const b = imp.bonifico || {}; el("i-intestatario").value = b.intestatario || ""; el("i-iban").value = b.iban || ""; el("i-banca").value = b.banca || ""; el("i-bic").value = b.bic || "";
+        el("i-email").value = (imp.notifiche || {}).email || "";
+        el("i-cod").value = (imp.contrassegno || {}).supplemento != null ? imp.contrassegno.supplemento : 5;
+        renderSped(imp.spedizione || []);
+      }
+      function renderSped(fasce) {
+        el("i-sped").querySelector("tbody").innerHTML = fasce.map((f, i) => '<tr><td><input type="number" min="1" data-sf="' + i + '" value="' + (f.fino_a == null ? "" : f.fino_a) + '" placeholder="oltre" style="max-width:110px"></td><td><input type="number" step="0.01" min="0" data-sc="' + i + '" value="' + f.costo + '" style="max-width:110px"></td><td><button class="btn sm ghost" data-sdel="' + i + '">✕</button></td></tr>').join("");
+        el("i-sped").querySelectorAll("[data-sdel]").forEach(b => b.onclick = () => { const f = readSped(); f.splice(Number(b.getAttribute("data-sdel")), 1); renderSped(f); });
+      }
+      function readSped() {
+        const rows = [...el("i-sped").querySelectorAll("tbody tr")];
+        return rows.map(r => ({ fino_a: r.querySelector("[data-sf]").value === "" ? null : Number(r.querySelector("[data-sf]").value), costo: Number(r.querySelector("[data-sc]").value || 0) }));
+      }
+      async function salvaImp(chiave, valore, msg) {
+        const { error } = await App.db.rpc("admin_salva_impostazione", { p_chiave: chiave, p_valore: valore });
+        if (error) App.toast(error.message, "err"); else { App.toast(msg || "Salvato", "ok"); loadImpostazioni(); }
+      }
+      el("i-save-bonifico").onclick = () => salvaImp("bonifico", { intestatario: el("i-intestatario").value.trim(), iban: el("i-iban").value.replace(/\s+/g, "").toUpperCase(), banca: el("i-banca").value.trim(), bic: el("i-bic").value.trim() }, "Dati bonifico salvati");
+      el("i-save-notifiche").onclick = () => salvaImp("notifiche", { email: el("i-email").value.trim() }, "Email avvisi salvata");
+      el("i-save-cod").onclick = () => salvaImp("contrassegno", { supplemento: Number(el("i-cod").value || 0) }, "Supplemento salvato");
+      el("i-sped-add").onclick = () => { const f = readSped(); f.push({ fino_a: null, costo: 0 }); renderSped(f); };
+      el("i-save-sped").onclick = () => {
+        const f = readSped().sort((a, b) => (a.fino_a == null ? 1e9 : a.fino_a) - (b.fino_a == null ? 1e9 : b.fino_a));
+        if (!f.length || f[f.length - 1].fino_a != null) { App.toast("L'ultima fascia deve avere 'fino a' vuoto (= oltre)", "err"); return; }
+        salvaImp("spedizione", f, "Fasce di spedizione salvate");
+      };
+
+      // ---------- STATISTICHE ----------
+      function renderStats() {
+        el("st-pagare").textContent = ordini.filter(o => o.stato === "da_pagare").length;
+        el("st-spedire").textContent = ordini.filter(o => o.stato === "da_spedire").length;
+        el("st-b2b").textContent = clienti.filter(c => c.tipo === "b2b" && !c.approvato).length;
+        const now = new Date();
+        el("st-mese").textContent = money(ordini.filter(o => o.pagato && new Date(o.pagato_il || o.created_at).getMonth() === now.getMonth() && new Date(o.pagato_il || o.created_at).getFullYear() === now.getFullYear()).reduce((s, o) => s + Number(o.totale), 0));
+      }
+
+      function init() {
+        if (!App.configured) { el("denied").hidden = false; el("denied").textContent = "Supabase non ancora collegato (vedi GUIDA.md)."; return; }
+        if (!App.isAdmin()) { el("denied").hidden = false; el("panel").hidden = true; return; }
+        el("denied").hidden = true; el("panel").hidden = false;
+        loadOrdini(); loadClienti(); loadProdotti(); loadImpostazioni();
+      }
+      App.ready.then(init); App.onAuth(init);
+    })();
+  </script>
+</body>
+</html>

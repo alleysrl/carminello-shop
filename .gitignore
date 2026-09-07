@@ -1,0 +1,4 @@
+.DS_Store
+supabase/.env
+supabase/.temp
+*.local

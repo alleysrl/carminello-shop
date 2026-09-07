@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1c1512">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="icon" href="assets/icons/favicon-64.png" sizes="64x64" type="image/png">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-title" content="Carminello">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <title>Ordina — Carminello</title>
+  <meta name="description" content="Ordina online le basi pizza artigianali Carminello. Spedizione in tutta Italia.">
+</head>
+<body>
+  <header id="site-header"></header>
+  <div id="cfg-banner" hidden></div>
+
+  <main class="wrap">
+    <div class="page-head">
+      <span class="kicker" data-i18n="nav.shop">Ordina</span>
+      <h1 data-i18n="shop.title">Ordina le basi</h1>
+      <p class="lead" data-i18n="shop.sub">Scegli quanti cartoni vuoi. La spedizione si calcola da sola.</p>
+    </div>
+
+    <div id="b2b-wait" class="notice warn" hidden>
+      <b data-i18n="shop.b2bWait.t">Account in attesa di attivazione</b><br>
+      <span data-i18n="shop.b2bWait">Grazie per esserti registrato come locale. Ti contattiamo a breve per concordare il prezzo: appena confermato, potrai ordinare da qui in autonomia.</span>
+    </div>
+
+    <div class="shop-grid">
+      <div id="products"><div class="card"><span class="spinner"></span> <span data-i18n="common.loading">Caricamento…</span></div></div>
+
+      <aside class="summary">
+        <div class="card">
+          <div class="line"><span data-i18n="common.subtotal">Subtotale</span><span id="s-sub">0,00 €</span></div>
+          <div class="line"><span data-i18n="common.shipping">Spedizione</span><span id="s-ship">—</span></div>
+          <div class="line total"><span data-i18n="common.total">Totale</span><span id="s-tot">0,00 €</span></div>
+          <p class="muted small" style="margin:.5rem 0 1rem" data-i18n="common.vat">Prezzi IVA inclusa</p>
+          <button class="btn lg block" id="go-checkout" data-i18n="shop.checkout">Vai al pagamento</button>
+          <p class="muted small" style="margin:.8rem 0 0" id="login-note" data-i18n="shop.loginNote">Per completare l'ordine ti chiederemo di accedere o registrarti (30 secondi).</p>
+        </div>
+        <div class="card">
+          <h3 data-i18n="shop.shipTitle">Spese di spedizione</h3>
+          <table class="ship-table" id="ship-table"></table>
+          <p class="muted small" style="margin:.8rem 0 0" data-i18n="shop.shipNote">Spediamo in tutta Italia. Ordini evasi dal lunedì al giovedì, consegna in 2–3 giorni lavorativi.</p>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer id="site-footer"></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/i18n.js"></script>
+  <script src="assets/js/cart.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    (function () {
+      let catalogo = [];
+      const el = id => document.getElementById(id);
+
+      function renderShipTable(cartoni) {
+        let prev = 0; const rows = [];
+        CONFIG.SPEDIZIONE.forEach(f => {
+          const isInf = f.fino_a === Infinity;
+          let label;
+          if (isInf) label = Lang.t("shop.shipFrom") + " " + (prev + 1) + " " + Lang.t("shop.shipRow") + " " + Lang.t("shop.shipAnd");
+          else if (f.fino_a === prev + 1) label = f.fino_a + " " + (f.fino_a === 1 ? Lang.t("common.cartone") : Lang.t("common.cartoni"));
+          else label = (prev + 1) + "–" + f.fino_a + " " + Lang.t("shop.shipRow");
+          const on = cartoni > 0 && cartoni > prev && (isInf || cartoni <= f.fino_a);
+          rows.push('<tr class="' + (on ? "on" : "") + '"><td>' + label + '</td><td>' + (f.costo ? App.money(f.costo) : Lang.t("common.free")) + '</td></tr>');
+          prev = f.fino_a;
+        });
+        el("ship-table").innerHTML = rows.join("");
+      }
+
+      function renderTotals() {
+        const t = Cart.totali(catalogo);
+        el("s-sub").textContent = App.money(t.subtotale);
+        el("s-ship").textContent = t.cartoni ? (t.spedizione ? App.money(t.spedizione) : Lang.t("common.free")) : "—";
+        el("s-tot").textContent = App.money(t.totale);
+        el("go-checkout").disabled = t.cartoni === 0 || !App.configured;
+        renderShipTable(t.cartoni);
+        // aggiorna i contatori nelle schede
+        catalogo.forEach(p => {
+          const i = el("q-" + p.id); if (i && Number(i.value) !== Cart.qty(p.id)) i.value = Cart.qty(p.id);
+          const tt = el("tot-" + p.id); if (tt) tt.textContent = Cart.qty(p.id) ? App.money(Cart.qty(p.id) * p.prezzo) + " " + Lang.t("shop.inCart") : "";
+        });
+      }
+
+      function renderProducts() {
+        const box = el("products");
+        if (!catalogo.length) { box.innerHTML = ""; return; }
+        box.innerHTML = catalogo.map(p => `
+          <div class="card product">
+            <img src="${App.esc(p.immagine || "assets/img/base-classica.webp")}" alt="" width="220" height="220">
+            <div>
+              <h2>${App.esc(Lang.pick(p, "nome"))}</h2>
+              <p class="muted">${App.esc(Lang.pick(p, "descr"))}</p>
+              <div class="price-big">${App.money(p.prezzo)} <small>${Lang.t("shop.perBox")} · ${p.pezzi} ${Lang.t("shop.bases")} · ${App.money(p.prezzo / p.pezzi)} ${Lang.t("prod.perBase")}</small></div>
+              ${App.b2bAttivo() ? '<p class="small" style="color:var(--basil);font-weight:600;margin:.3rem 0 0">' + Lang.t("shop.b2bPrice") + '</p>' : ''}
+              <div style="display:flex;align-items:center;gap:1rem;margin-top:1rem;flex-wrap:wrap">
+                <div class="qty">
+                  <button type="button" data-dec="${p.id}" aria-label="−">−</button>
+                  <input type="number" min="0" max="999" inputmode="numeric" id="q-${p.id}" value="${Cart.qty(p.id)}" data-qty="${p.id}">
+                  <button type="button" data-inc="${p.id}" aria-label="+">+</button>
+                </div>
+                <span class="muted small"><span data-i18n="common.cartoni">cartoni</span> · <span id="tot-${p.id}"></span></span>
+              </div>
+            </div>
+          </div>`).join("");
+        box.querySelectorAll("[data-inc]").forEach(b => b.addEventListener("click", () => Cart.add(b.getAttribute("data-inc"), 1)));
+        box.querySelectorAll("[data-dec]").forEach(b => b.addEventListener("click", () => Cart.add(b.getAttribute("data-dec"), -1)));
+        box.querySelectorAll("[data-qty]").forEach(i => i.addEventListener("change", () => Cart.set(i.getAttribute("data-qty"), i.value)));
+        Lang.apply(box);
+        renderTotals();
+      }
+
+      async function load() {
+        catalogo = await App.catalogo();
+        // scarta dal carrello prodotti non più visibili (es. cambio da privato a locale)
+        Object.keys(Cart.get()).forEach(id => { if (!catalogo.find(p => p.id === id)) Cart.set(id, 0); });
+        el("b2b-wait").hidden = !(App.isB2B() && !App.b2bAttivo());
+        el("login-note").hidden = !!App.user;
+        renderProducts();
+      }
+      document.addEventListener("cart:change", renderTotals);
+      document.addEventListener("lang:change", renderProducts);
+      App.onAuth(load);
+      App.ready.then(load);
+      el("go-checkout").addEventListener("click", () => { if (App.requireLogin("checkout.html")) location.href = "checkout.html"; });
+    })();
+  </script>
+</body>
+</html>

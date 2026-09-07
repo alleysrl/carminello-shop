@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1c1512">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="icon" href="assets/icons/favicon-64.png" sizes="64x64" type="image/png">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-title" content="Carminello">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <meta name="robots" content="noindex">
+  <title>Account — Carminello</title>
+</head>
+<body>
+  <header id="site-header"></header>
+  <div id="cfg-banner" hidden></div>
+
+  <main class="wrap" style="max-width:820px">
+    <div class="page-head"><h1 data-i18n="acc.title">Il tuo account</h1></div>
+    <div id="msg" class="notice ok" hidden></div>
+
+    <!-- NON LOGGATO -->
+    <div id="guest" class="card" hidden>
+      <div class="tabs"><button id="tab-login" class="on" data-i18n="acc.login">Accedi</button><button id="tab-reg" data-i18n="acc.register">Registrati</button></div>
+
+      <form id="login" novalidate>
+        <div class="field"><label data-i18n="acc.email">Email</label><input id="l-email" type="email" required autocomplete="email"></div>
+        <div class="field"><label data-i18n="acc.password">Password</label><input id="l-pass" type="password" required autocomplete="current-password"></div>
+        <div class="err" id="l-err" hidden></div>
+        <button class="btn lg block" type="submit" data-i18n="acc.loginBtn">Entra</button>
+        <p class="center" style="margin:.9rem 0 0"><a href="#" id="forgot" class="small" data-i18n="acc.forgot">Password dimenticata?</a></p>
+      </form>
+
+      <form id="reg" hidden novalidate>
+        <label data-i18n="acc.who">Chi sei?</label>
+        <div class="choice" style="margin-bottom:1.2rem">
+          <label><input type="radio" name="tipo" value="b2c" checked><span><b data-i18n="acc.b2c">Privato</b><small data-i18n="acc.b2cD">Ordino per casa</small></span></label>
+          <label><input type="radio" name="tipo" value="b2b"><span><b data-i18n="acc.b2b">Locale / azienda</b><small data-i18n="acc.b2bD">Pizzeria, ristorante, bar, negozio</small></span></label>
+        </div>
+        <div id="reg-b2b" hidden>
+          <div class="field"><label data-i18n="co.company">Ragione sociale</label><input id="r-company" autocomplete="organization"></div>
+          <div class="row three">
+            <div class="field"><label data-i18n="acc.piva">Partita IVA</label><input id="r-piva" inputmode="numeric"></div>
+            <div class="field"><label data-i18n="acc.sdi">Codice SDI (facoltativo)</label><input id="r-sdi" maxlength="7" style="text-transform:uppercase"></div>
+            <div class="field"><label data-i18n="acc.pec">PEC (facoltativa)</label><input id="r-pec" type="email"></div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field"><label data-i18n="co.name">Nome</label><input id="r-nome" required autocomplete="given-name"></div>
+          <div class="field"><label data-i18n="co.surname">Cognome</label><input id="r-cognome" required autocomplete="family-name"></div>
+        </div>
+        <div class="row">
+          <div class="field"><label data-i18n="co.phone">Telefono</label><input id="r-tel" type="tel" required autocomplete="tel"></div>
+          <div class="field"><label data-i18n="acc.email">Email</label><input id="r-email" type="email" required autocomplete="email"></div>
+        </div>
+        <div class="row">
+          <div class="field"><label data-i18n="acc.password">Password</label><input id="r-pass" type="password" required minlength="8" autocomplete="new-password"></div>
+          <div class="field"><label data-i18n="acc.password2">Ripeti la password</label><input id="r-pass2" type="password" required autocomplete="new-password"></div>
+        </div>
+        <div class="field"><label class="check"><input type="checkbox" id="r-priv"><span data-i18n-html="acc.privacy"></span></label></div>
+        <div class="err" id="r-err" hidden></div>
+        <button class="btn lg block" type="submit" data-i18n="acc.registerBtn">Crea account</button>
+      </form>
+    </div>
+
+    <!-- NUOVA PASSWORD (dal link dell'email) -->
+    <div id="recovery" class="card" hidden>
+      <h3 data-i18n="acc.newPass">Scegli la nuova password</h3>
+      <form id="rec-form" novalidate>
+        <div class="row">
+          <div class="field"><label data-i18n="acc.password">Password</label><input id="n-pass" type="password" minlength="8" autocomplete="new-password"></div>
+          <div class="field"><label data-i18n="acc.password2">Ripeti la password</label><input id="n-pass2" type="password" autocomplete="new-password"></div>
+        </div>
+        <div class="err" id="n-err" hidden></div>
+        <button class="btn" type="submit" data-i18n="acc.setPass">Salva password</button>
+      </form>
+    </div>
+
+    <!-- LOGGATO -->
+    <div id="me" hidden>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap">
+          <h2 style="margin:0"><span data-i18n="acc.welcome">Ciao</span> <span id="me-name"></span></h2>
+          <button class="btn sm ghost" id="logout" data-i18n="acc.logout">Esci</button>
+        </div>
+        <p class="muted small" id="me-email" style="margin:.3rem 0 0"></p>
+        <div id="me-b2b" class="notice" style="margin-top:1rem" hidden><b data-i18n="acc.b2bStatus">Stato account locale</b>: <span id="me-b2b-txt"></span></div>
+      </div>
+
+      <div class="card">
+        <h3 data-i18n="acc.orders">I tuoi ordini</h3>
+        <div id="orders" class="order-list"></div>
+      </div>
+
+      <div class="card">
+        <h3 data-i18n="acc.profile">I tuoi dati</h3>
+        <form id="prof" novalidate>
+          <div id="p-b2b" hidden>
+            <div class="field"><label data-i18n="co.company">Ragione sociale</label><input id="p-company"></div>
+            <div class="row three">
+              <div class="field"><label data-i18n="acc.piva">Partita IVA</label><input id="p-piva"></div>
+              <div class="field"><label data-i18n="acc.sdi">Codice SDI</label><input id="p-sdi" maxlength="7"></div>
+              <div class="field"><label data-i18n="acc.pec">PEC</label><input id="p-pec" type="email"></div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="field"><label data-i18n="co.name">Nome</label><input id="p-nome"></div>
+            <div class="field"><label data-i18n="co.surname">Cognome</label><input id="p-cognome"></div>
+          </div>
+          <div class="field"><label data-i18n="co.phone">Telefono</label><input id="p-tel" type="tel"></div>
+          <div class="field"><label data-i18n="co.address">Via e numero civico</label><input id="p-via"></div>
+          <div class="row three">
+            <div class="field"><label data-i18n="co.city">Città</label><input id="p-citta"></div>
+            <div class="field"><label data-i18n="co.zip">CAP</label><input id="p-cap"></div>
+            <div class="field"><label data-i18n="co.prov">Provincia</label><input id="p-prov" maxlength="2"></div>
+          </div>
+          <button class="btn" type="submit" data-i18n="common.save">Salva</button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <footer id="site-footer"></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/i18n.js"></script>
+  <script src="assets/js/cart.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    (function () {
+      const el = id => document.getElementById(id);
+      const next = App.qs("next");
+      function showMsg(t) { el("msg").textContent = t; el("msg").hidden = false; window.scrollTo(0, 0); }
+      function errBox(id, t) { const e = el(id); e.textContent = t; e.hidden = !t; }
+
+      // tabs
+      function showTab(reg) { el("tab-login").classList.toggle("on", !reg); el("tab-reg").classList.toggle("on", reg); el("login").hidden = reg; el("reg").hidden = !reg; }
+      el("tab-login").onclick = () => showTab(false); el("tab-reg").onclick = () => showTab(true);
+      document.querySelectorAll("input[name=tipo]").forEach(r => r.addEventListener("change", () => { el("reg-b2b").hidden = r.value !== "b2b" || !r.checked; }));
+      if (App.qs("tipo") === "b2b") { document.querySelector("input[name=tipo][value=b2b]").checked = true; el("reg-b2b").hidden = false; showTab(true); }
+
+      function gotoNext() { location.href = next ? decodeURIComponent(next) : "account.html"; }
+
+      // ---- login ----
+      el("login").addEventListener("submit", async e => {
+        e.preventDefault(); errBox("l-err", "");
+        const { error } = await App.db.auth.signInWithPassword({ email: el("l-email").value.trim(), password: el("l-pass").value });
+        if (error) { errBox("l-err", Lang.t("acc.errLogin")); return; }
+        if (next) gotoNext();
+      });
+      el("forgot").addEventListener("click", async e => {
+        e.preventDefault(); const email = el("l-email").value.trim();
+        if (!email) { errBox("l-err", Lang.t("co.errFields")); return; }
+        const { error } = await App.db.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname.replace(/[^/]*$/, "") + "account.html" });
+        if (error) errBox("l-err", error.message); else showMsg(Lang.t("acc.resetSent"));
+      });
+
+      // ---- registrazione ----
+      el("reg").addEventListener("submit", async e => {
+        e.preventDefault(); errBox("r-err", "");
+        const tipo = document.querySelector("input[name=tipo]:checked").value;
+        const v = id => el(id).value.trim();
+        if (!v("r-nome") || !v("r-cognome") || !v("r-tel") || !v("r-email") || (tipo === "b2b" && (!v("r-company") || !v("r-piva")))) { errBox("r-err", Lang.t("co.errFields")); return; }
+        if (el("r-pass").value.length < 8) { errBox("r-err", Lang.t("acc.errPassLen")); return; }
+        if (el("r-pass").value !== el("r-pass2").value) { errBox("r-err", Lang.t("acc.errPass")); return; }
+        if (!el("r-priv").checked) { errBox("r-err", Lang.t("co.errTerms")); return; }
+        const meta = { tipo, nome: v("r-nome"), cognome: v("r-cognome"), telefono: v("r-tel"), lingua: Lang.get() };
+        if (tipo === "b2b") Object.assign(meta, { ragione_sociale: v("r-company"), piva: v("r-piva"), sdi: v("r-sdi").toUpperCase(), pec: v("r-pec") });
+        const { data, error } = await App.db.auth.signUp({ email: v("r-email"), password: el("r-pass").value, options: { data: meta, emailRedirectTo: location.origin + location.pathname.replace(/[^/]*$/, "") + "account.html" } });
+        if (error) { errBox("r-err", /already|registered|exists/i.test(error.message) ? Lang.t("acc.errExists") : error.message); return; }
+        if (data.session) { if (next) gotoNext(); }
+        else { showMsg(Lang.t("acc.checkMail")); el("reg").reset(); showTab(false); }
+      });
+
+      // ---- recupero password ----
+      function showRecovery() { el("guest").hidden = true; el("me").hidden = true; el("recovery").hidden = false; }
+      document.addEventListener("auth:recovery", showRecovery);
+      if (/type=recovery/.test(location.hash)) showRecovery();
+      el("rec-form").addEventListener("submit", async e => {
+        e.preventDefault(); errBox("n-err", "");
+        if (el("n-pass").value.length < 8) { errBox("n-err", Lang.t("acc.errPassLen")); return; }
+        if (el("n-pass").value !== el("n-pass2").value) { errBox("n-err", Lang.t("acc.errPass")); return; }
+        const { error } = await App.db.auth.updateUser({ password: el("n-pass").value });
+        if (error) { errBox("n-err", error.message); return; }
+        history.replaceState(null, "", "account.html"); el("recovery").hidden = true; showMsg(Lang.t("acc.saved")); render();
+      });
+
+      // ---- area personale ----
+      async function loadOrders() {
+        const { data } = await App.db.from("orders").select("id,numero,created_at,stato,pagato,totale,metodo_pagamento,righe").order("created_at", { ascending: false });
+        const box = el("orders");
+        if (!data || !data.length) { box.innerHTML = '<p class="muted">' + Lang.t("acc.noOrders") + ' <a href="shop.html">' + Lang.t("nav.shop") + '</a></p>'; return; }
+        box.innerHTML = data.map(o => `
+          <div class="order-row">
+            <div><span class="n">${Lang.t("ord.number")} ${o.numero}</span> <span class="pill ${o.stato}">${Lang.t("st." + o.stato)}</span> <span class="pill ${o.pagato ? "paid" : "unpaid"}">${o.pagato ? Lang.t("ord.paid") : Lang.t("ord.unpaid")}</span><br><span class="m">${App.dateFmt(o.created_at)} · ${Lang.t("pm." + o.metodo_pagamento)}</span></div>
+            <div><div class="t">${App.money(o.totale)}</div><div class="actions" style="justify-content:flex-end;margin-top:.3rem"><a class="btn sm ghost" href="ordine.html?id=${o.id}">${Lang.t("acc.view")}</a><button class="btn sm" data-reorder="${o.id}">${Lang.t("acc.reorder")}</button></div></div>
+          </div>`).join("");
+        box.querySelectorAll("[data-reorder]").forEach(b => b.addEventListener("click", () => {
+          const o = data.find(x => x.id === b.getAttribute("data-reorder")); Cart.clear();
+          (o.righe || []).forEach(r => Cart.set(r.product_id || r.id, r.qty)); location.href = "shop.html";
+        }));
+      }
+      function fillProfile() {
+        const p = App.profile || {}, a = p.indirizzo || {};
+        el("me-name").textContent = p.nome || p.ragione_sociale || ""; el("me-email").textContent = App.user.email;
+        el("p-b2b").hidden = p.tipo !== "b2b";
+        el("me-b2b").hidden = p.tipo !== "b2b";
+        if (p.tipo === "b2b") { el("me-b2b").className = "notice " + (p.approvato ? "ok" : "warn"); el("me-b2b-txt").textContent = p.approvato ? Lang.t("acc.b2bOk") : Lang.t("acc.b2bPending"); }
+        el("p-company").value = p.ragione_sociale || ""; el("p-piva").value = p.piva || ""; el("p-sdi").value = p.sdi || ""; el("p-pec").value = p.pec || "";
+        el("p-nome").value = p.nome || ""; el("p-cognome").value = p.cognome || ""; el("p-tel").value = p.telefono || "";
+        el("p-via").value = a.via || ""; el("p-citta").value = a.citta || ""; el("p-cap").value = a.cap || ""; el("p-prov").value = a.prov || "";
+      }
+      el("prof").addEventListener("submit", async e => {
+        e.preventDefault(); const v = id => el(id).value.trim();
+        const dati = { nome: v("p-nome"), cognome: v("p-cognome"), telefono: v("p-tel"), indirizzo: { via: v("p-via"), citta: v("p-citta"), cap: v("p-cap"), prov: v("p-prov").toUpperCase() } };
+        if (App.isB2B()) Object.assign(dati, { ragione_sociale: v("p-company"), piva: v("p-piva"), sdi: v("p-sdi").toUpperCase(), pec: v("p-pec") });
+        const { error } = await App.db.rpc("aggiorna_profilo", { p_dati: dati });
+        if (error) App.toast(error.message, "err"); else { await App.loadProfile(); App.renderHeader(); App.toast(Lang.t("acc.saved"), "ok"); }
+      });
+      el("logout").addEventListener("click", async () => { await App.logout(); location.href = "index.html"; });
+
+      function render() {
+        if (!App.configured) return;
+        if (!el("recovery").hidden) return;
+        if (App.user) { el("guest").hidden = true; el("me").hidden = false; fillProfile(); loadOrders(); }
+        else { el("me").hidden = true; el("guest").hidden = false; }
+      }
+      App.onAuth(render); App.ready.then(render);
+      document.addEventListener("lang:change", () => { if (App.user) { fillProfile(); loadOrders(); } });
+    })();
+  </script>
+</body>
+</html>

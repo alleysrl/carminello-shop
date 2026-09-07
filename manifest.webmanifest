@@ -1,0 +1,16 @@
+{
+  "name": "Carminello — Basi pizza artigianali",
+  "short_name": "Carminello",
+  "description": "Ordina le basi pizza artigianali Carminello: pronte in 5 minuti, oltre 30 giorni in dispensa.",
+  "lang": "it",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#faf6ee",
+  "theme_color": "#c8452b",
+  "icons": [
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

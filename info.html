@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1c1512">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="icon" href="assets/icons/favicon-64.png" sizes="64x64" type="image/png">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-title" content="Carminello">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <title>Informazioni — Carminello</title>
+  <meta name="description" content="Spedizioni, pagamenti, cottura, condizioni di vendita e privacy di Carminello.">
+</head>
+<body>
+  <header id="site-header"></header>
+  <div id="cfg-banner" hidden></div>
+
+  <main class="wrap">
+    <div class="page-head"><h1 data-i18n="nav.info">Info</h1></div>
+    <nav class="info-nav">
+      <a href="#spedizioni" data-i18n="info.ship.t">Spedizioni</a>
+      <a href="#pagamenti" data-i18n="info.pay.t">Metodi di pagamento</a>
+      <a href="#cottura" data-i18n="info.cook.t">Cottura delle basi</a>
+      <a href="#contatti" data-i18n="info.contact.t">Contatti</a>
+      <a href="#condizioni" data-i18n="info.terms.t">Termini e condizioni di vendita</a>
+      <a href="#privacy" data-i18n="info.priv.t">Privacy policy</a>
+      <a href="#cookie" data-i18n="info.cookie.t">Cookie policy</a>
+    </nav>
+
+    <section class="info-sec" id="spedizioni">
+      <h2 data-i18n="info.ship.t">Spedizioni</h2>
+      <p data-i18n="info.ship.p1">Spediamo in tutta Italia, sia pacchi singoli che box multipli.</p>
+      <p data-i18n="info.ship.p2">Gli ordini vengono evasi dal lunedì al giovedì. La spedizione avviene di solito entro 1 o 2 giorni lavorativi; non spediamo venerdì, sabato e domenica. In alcuni periodi i tempi possono allungarsi.</p>
+      <p data-i18n="info.ship.p3">Una volta spedito l'ordine, ti inviamo le informazioni per tracciarlo via email o WhatsApp.</p>
+      <p data-i18n="info.ship.p4">Ogni ordine è imballato con cura, con materiali adatti a garantire l'integrità del prodotto durante il trasporto.</p>
+      <p data-i18n="info.ship.p5">Costi di spedizione in base al numero di cartoni:</p>
+      <table class="ship-table" id="ship-table" style="max-width:360px"></table>
+    </section>
+
+    <section class="info-sec" id="pagamenti">
+      <h2 data-i18n="info.pay.t">Metodi di pagamento</h2>
+      <p data-i18n="info.pay.p1">Puoi pagare con carta di credito o debito (Visa, Mastercard, Maestro, American Express), tramite SumUp, piattaforma sicura per i pagamenti online. Il pagamento avviene su una pagina protetta: noi non vediamo mai i dati della tua carta.</p>
+      <p data-i18n="info.pay.p2">In alternativa puoi pagare con bonifico bancario: i dati ti vengono mostrati alla fine dell'ordine. Spediamo alla ricezione del bonifico.</p>
+      <p data-i18n="info.pay.p3">I locali e le aziende registrati possono anche pagare in contrassegno, alla consegna, con un supplemento di 5 €.</p>
+      <p data-i18n="info.pay.p4">Se hai un locale e vuoi il listino riservato, registrati come locale oppure contattaci su WhatsApp.</p>
+    </section>
+
+    <section class="info-sec" id="cottura">
+      <h2 data-i18n="info.cook.t">Cottura delle basi</h2>
+      <p data-i18n="info.cook.p">Le basi Carminello sono già cotte: in forno serve solo il tempo di scaldarle e far fondere il condimento.</p>
+      <div class="steps" style="margin:1.2rem 0">
+        <div class="step"><i>1</i><h3 data-i18n="how.s1t">Apri</h3><p data-i18n="how.s1">Togli la base dalla busta.</p></div>
+        <div class="step"><i>2</i><h3 data-i18n="how.s2t">Condisci</h3><p data-i18n="how.s2">Pomodoro, mozzarella e quello che vuoi.</p></div>
+        <div class="step"><i>3</i><h3 data-i18n="how.s3t">Inforna</h3><p data-i18n="how.s3">Forno caldissimo, pochi minuti, finché il formaggio fonde.</p></div>
+        <div class="step"><i>4</i><h3 data-i18n="how.s4t">Gusta</h3><p data-i18n="how.s4">Una pizza croccante e leggera, in qualsiasi momento.</p></div>
+      </div>
+      <div class="tip" data-i18n="how.tips">Consiglio: forno statico al massimo (250 °C), base direttamente sulla griglia o su pietra, 4–6 minuti.</div>
+    </section>
+
+    <section class="info-sec" id="contatti">
+      <h2 data-i18n="info.contact.t">Contatti</h2>
+      <p data-i18n="contact.p">Scrivici su WhatsApp o via email: ti rispondiamo presto. Vuoi un ordine per una data precisa? Diccelo.</p>
+      <div class="contact-box" style="max-width:420px">
+        <label data-i18n="contact.wa">WhatsApp</label><a class="big" id="c-wa" href="#" target="_blank" rel="noopener"></a>
+        <label style="margin-top:1rem" data-i18n="contact.mail">Email</label><a class="big" id="c-mail" href="#"></a>
+        <p class="muted small" id="c-addr" style="margin-top:1rem"></p>
+      </div>
+    </section>
+
+    <section class="info-sec" id="condizioni">
+      <h2 data-i18n="info.terms.t">Termini e condizioni di vendita</h2>
+      <p class="muted small" id="legal-note-1" hidden>Legal texts are provided in Italian, the language of the contract.</p>
+      <h3>Titolare del sito</h3>
+      <p>Il sito è gestito da <b>ALLEYS SRL</b>, Via del Cantone, 91 – 50019 Sesto Fiorentino (FI), Italia. Email: info@carminello.eu · WhatsApp: +39 379 3504521 · P.IVA 07179450486 – Cod. R.E.A. FI-685260.</p>
+      <h3>Oggetto</h3>
+      <p>I presenti Termini e Condizioni regolano la vendita dei prodotti alimentari a marchio Carminello tramite questo sito.</p>
+      <h3>Prodotti</h3>
+      <p>Carminello commercializza basi per pizza napoletana contemporanea, realizzate artigianalmente. Tutti i prodotti sono descritti nelle rispettive schede, con indicazione di ingredienti, peso, modalità di conservazione e scadenza.</p>
+      <h3>Ordini</h3>
+      <p>Gli ordini possono essere effettuati da clienti privati (B2C) e, previa registrazione e attivazione dell'account, da aziende e locali (B2B) alle condizioni di prezzo concordate. L'ordine è vincolante solo dopo la conferma inviata da Carminello via email. Carminello si riserva di non accettare ordini in caso di indisponibilità del prodotto o di dati incompleti; in tal caso eventuali somme già versate vengono restituite.</p>
+      <h3>Prezzi e pagamenti</h3>
+      <p>Tutti i prezzi sono espressi in euro (€) e includono l'IVA. I metodi di pagamento accettati sono: carta di credito/debito tramite SumUp; bonifico bancario anticipato (l'ordine viene spedito alla ricezione dell'accredito; se il bonifico non perviene entro 7 giorni l'ordine si intende annullato); contrassegno, riservato ai clienti B2B attivati, con supplemento di 5 €.</p>
+      <h3>Spedizioni</h3>
+      <p>Le spedizioni vengono effettuate esclusivamente in Italia. Costi e tempi di consegna sono indicati alla sezione Spedizioni. La merce viene spedita da ALLEYS SRL – Via del Cantone, 91 – 50019 Sesto Fiorentino (FI).</p>
+      <h3>Diritto di recesso</h3>
+      <p>Ai sensi dell'art. 59 del Codice del Consumo, il diritto di recesso è escluso per i beni alimentari che rischiano di deteriorarsi o scadere rapidamente e per i beni sigillati aperti dopo la consegna. Resta salvo il diritto del consumatore in caso di prodotto non conforme.</p>
+      <h3>Resi e reclami</h3>
+      <p>In caso di prodotto errato, danneggiato o non conforme, il cliente può contattare info@carminello.eu entro 14 giorni dalla consegna, allegando foto, per ricevere istruzioni. Il rimborso o la sostituzione avvengono dopo verifica.</p>
+      <h3>Protezione dei dati</h3>
+      <p>Tutti i dati personali sono trattati in conformità al Regolamento (UE) 2016/679 (GDPR). Consulta la Privacy Policy per maggiori informazioni.</p>
+      <h3>Legge applicabile e foro</h3>
+      <p>I presenti termini sono regolati dalla legge italiana. Per le controversie con i consumatori è competente il foro del luogo di residenza o domicilio del consumatore; negli altri casi il Foro di Firenze. I consumatori possono inoltre ricorrere alla piattaforma europea ODR: https://ec.europa.eu/consumers/odr.</p>
+    </section>
+
+    <section class="info-sec" id="privacy">
+      <h2 data-i18n="info.priv.t">Privacy policy</h2>
+      <p class="muted small" id="legal-note-2" hidden>Legal texts are provided in Italian.</p>
+      <h3>Titolare del trattamento</h3>
+      <p>ALLEYS SRL, Via del Cantone, 91 – 50019 Sesto Fiorentino (FI), P.IVA 07179450486, email info@carminello.eu.</p>
+      <h3>Quali dati raccogliamo</h3>
+      <ul>
+        <li><b>Dati di account</b>: email, password (conservata in forma cifrata), nome, cognome, telefono; per le aziende anche ragione sociale, Partita IVA, codice SDI e PEC.</li>
+        <li><b>Dati di ordine e consegna</b>: indirizzo di spedizione, prodotti acquistati, importi, metodo di pagamento scelto, eventuali note.</li>
+        <li><b>Dati tecnici</b>: indirizzo IP e informazioni sul browser, registrati automaticamente dai sistemi che ospitano il sito per motivi di sicurezza.</li>
+      </ul>
+      <p>Non raccogliamo né conserviamo i dati delle carte di pagamento: sono gestiti direttamente da SumUp sulle proprie pagine sicure.</p>
+      <h3>Perché li usiamo</h3>
+      <ul>
+        <li>Per gestire l'account, gli ordini, i pagamenti, le spedizioni e la fatturazione (esecuzione del contratto e obblighi di legge).</li>
+        <li>Per rispondere a richieste di assistenza (esecuzione del contratto / legittimo interesse).</li>
+        <li>Per inviare comunicazioni promozionali solo se hai dato un consenso specifico, revocabile in ogni momento.</li>
+      </ul>
+      <h3>Chi tratta i dati per noi</h3>
+      <p>Utilizziamo fornitori che agiscono come responsabili del trattamento: Supabase (database e autenticazione, server in Unione Europea), SumUp (pagamenti con carta), il fornitore del servizio email per le notifiche, i corrieri per la consegna e GitHub per l'hosting delle pagine del sito. Nessun dato viene venduto a terzi.</p>
+      <h3>Per quanto tempo</h3>
+      <p>I dati di account sono conservati finché l'account è attivo; i dati degli ordini per 10 anni, come richiesto dalla normativa fiscale. Puoi chiedere la cancellazione dell'account in qualsiasi momento scrivendo a info@carminello.eu.</p>
+      <h3>I tuoi diritti</h3>
+      <p>Hai diritto di accedere ai tuoi dati, rettificarli, cancellarli, limitarne il trattamento, opporti e richiederne la portabilità (artt. 15–22 GDPR), scrivendo a info@carminello.eu. Hai inoltre il diritto di proporre reclamo al Garante per la protezione dei dati personali (www.garanteprivacy.it).</p>
+    </section>
+
+    <section class="info-sec" id="cookie">
+      <h2 data-i18n="info.cookie.t">Cookie policy</h2>
+      <p class="muted small" id="legal-note-3" hidden>Legal texts are provided in Italian.</p>
+      <p>Questo sito <b>non utilizza cookie di profilazione</b> né strumenti di tracciamento pubblicitario, e per questo non mostra il banner dei cookie.</p>
+      <p>Utilizza esclusivamente strumenti tecnici necessari al funzionamento, che non richiedono consenso: la memoria locale del browser per ricordare la lingua scelta e il contenuto del carrello, e un cookie/token di sessione per mantenerti collegato al tuo account dopo l'accesso. Nella pagina di pagamento con carta, SumUp può impostare cookie tecnici propri necessari alla sicurezza della transazione.</p>
+      <p>Puoi cancellare questi dati in qualsiasi momento dalle impostazioni del tuo browser.</p>
+    </section>
+  </main>
+
+  <footer id="site-footer"></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/i18n.js"></script>
+  <script src="assets/js/cart.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    (function () {
+      const A = CONFIG.AZIENDA;
+      const cw = document.getElementById("c-wa"); cw.href = "https://wa.me/" + A.whatsapp; cw.textContent = A.telefono;
+      const cm = document.getElementById("c-mail"); cm.href = "mailto:" + A.email; cm.textContent = A.email;
+      document.getElementById("c-addr").textContent = A.ragione_sociale + " · " + A.indirizzo;
+      function ship() {
+        let prev = 0;
+        document.getElementById("ship-table").innerHTML = CONFIG.SPEDIZIONE.map(f => {
+          const inf = f.fino_a === Infinity;
+          const label = inf ? Lang.t("shop.shipFrom") + " " + (prev + 1) + " " + Lang.t("shop.shipRow") + " " + Lang.t("shop.shipAnd") : (f.fino_a === prev + 1 ? f.fino_a + " " + (f.fino_a === 1 ? Lang.t("common.cartone") : Lang.t("common.cartoni")) : (prev + 1) + "–" + f.fino_a + " " + Lang.t("shop.shipRow"));
+          prev = f.fino_a;
+          return "<tr><td>" + label + "</td><td>" + (f.costo ? App.money(f.costo) : Lang.t("common.free")) + "</td></tr>";
+        }).join("");
+        [1, 2, 3].forEach(i => document.getElementById("legal-note-" + i).hidden = Lang.get() !== "en");
+      }
+      ship(); document.addEventListener("lang:change", ship);
+    })();
+  </script>
+</body>
+</html>
