@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
       // al titolare
       await sendMail(ownerEmail, `Nuovo ordine n. ${o.numero} — ${cliente} — ${eur(o.totale)}`,
         layout(`Nuovo ordine n. ${o.numero}`, `
-          <p><b>Cliente:</b> ${esc(cliente)} (${o.tipo === "b2b" ? "locale" : "privato"}) · ${esc(p?.email)}</p>
+          <p><b>Cliente:</b> ${esc(cliente)} (${o.tipo === "b2b" ? "locale" : o.tipo === "rivenditore" ? "rivenditore" : "privato"}) · ${esc(p?.email)}</p>
           <p><b>Consegna:</b> ${indirizzoHtml(o.indirizzo)}</p>
           <p><b>Pagamento:</b> ${PM[o.metodo_pagamento]} · <b>Stato:</b> ${ST[o.stato]}</p>
           ${o.note ? `<p><b>Note:</b> ${esc(o.note)}</p>` : ""}
@@ -107,10 +107,10 @@ Deno.serve(async (req) => {
     }
 
     // ---- NUOVO LOCALE REGISTRATO → avviso al titolare ----
-    if (table === "profiles" && type === "INSERT" && record.tipo === "b2b") {
+    if (table === "profiles" && type === "INSERT" && (record.tipo === "b2b" || record.tipo === "rivenditore")) {
       const c = record;
-      await sendMail(ownerEmail, `Nuovo locale registrato: ${c.ragione_sociale || c.email}`,
-        layout("Nuovo locale da attivare", `
+      await sendMail(ownerEmail, `Nuovo ${c.tipo === "rivenditore" ? "rivenditore" : "locale"} registrato: ${c.ragione_sociale || c.email}`,
+        layout(c.tipo === "rivenditore" ? "Nuovo rivenditore da attivare" : "Nuovo locale da attivare", `
           <p><b>${esc(c.ragione_sociale)}</b><br>${esc(c.nome)} ${esc(c.cognome)}<br>${esc(c.email)} · ${esc(c.telefono)}<br>P.IVA ${esc(c.piva)}${c.sdi ? " · SDI " + esc(c.sdi) : ""}${c.pec ? " · PEC " + esc(c.pec) : ""}</p>
           <p>Contattalo, concorda il prezzo e attivalo dal pannello: da quel momento ordina da solo.</p>
           ${site ? `<p><a href="${site}/admin.html" style="background:#c8452b;color:#fff;padding:10px 18px;border-radius:999px;text-decoration:none">Apri il pannello</a></p>` : ""}`));

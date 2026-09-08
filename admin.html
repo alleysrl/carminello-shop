@@ -26,7 +26,7 @@
       <div class="stat-grid">
         <div class="stat"><b id="st-pagare">0</b><span>Da pagare</span></div>
         <div class="stat"><b id="st-spedire">0</b><span>Da spedire</span></div>
-        <div class="stat"><b id="st-b2b">0</b><span>Locali da attivare</span></div>
+        <div class="stat"><b id="st-b2b">0</b><span>Clienti da attivare</span></div>
         <div class="stat"><b id="st-mese">0 €</b><span>Incassato nel mese</span></div>
       </div>
 
@@ -42,7 +42,7 @@
 
       <!-- CLIENTI -->
       <section id="tab-clienti" hidden>
-        <div class="filters" id="cli-filters"><button class="on" data-f="b2b_pending">Locali da attivare</button><button data-f="b2b">Tutti i locali</button><button data-f="b2c">Privati</button><button data-f="tutti">Tutti</button></div>
+        <div class="filters" id="cli-filters"><button class="on" data-f="b2b_pending">Da attivare</button><button data-f="b2b">Locali</button><button data-f="rivenditore">Rivenditori</button><button data-f="b2c">Privati</button><button data-f="tutti">Tutti</button></div>
         <p class="muted small">Per attivare un locale: scrivi il prezzo del cartone da 20 e premi <b>Salva e attiva</b>. Da quel momento il cliente vede il suo prezzo e ordina da solo.</p>
         <div class="table-wrap"><table class="data"><thead><tr><th>Cliente</th><th>Contatti</th><th>Dati fiscali</th><th>Prezzo riservato</th><th>Stato</th><th></th></tr></thead><tbody id="cli-body"></tbody></table></div>
       </section>
@@ -103,6 +103,7 @@
       let ordini = [], clienti = [], prodotti = [], ordF = "attivi", cliF = "b2b_pending";
       const PM = { carta: "Carta", bonifico: "Bonifico", contrassegno: "Contrassegno" };
       const ST = { da_pagare: "Da pagare", da_spedire: "Da spedire", spedito: "Spedito", annullato: "Annullato" };
+      const TIPO = { b2c: "Privato", b2b: "Locale", rivenditore: "Rivenditore" };
       const money = App.money, esc = App.esc;
 
       // tabs
@@ -128,7 +129,7 @@
         el("ord-body").innerHTML = list.length ? list.map(o => `<tr>
           <td><b>${o.numero}</b></td>
           <td class="small">${App.dateFmt(o.created_at)}</td>
-          <td>${nomeCliente(o)}<br><span class="small muted">${o.tipo === "b2b" ? "Locale" : "Privato"} · ${esc((o.profiles || {}).email || "")}</span></td>
+          <td>${nomeCliente(o)}<br><span class="small muted">${TIPO[o.tipo] || o.tipo} · ${esc((o.profiles || {}).email || "")}</span></td>
           <td>${PM[o.metodo_pagamento]}<br><span class="pill ${o.pagato ? "paid" : "unpaid"}">${o.pagato ? "Pagato" : "Non pagato"}</span></td>
           <td><b>${money(o.totale)}</b></td>
           <td><span class="pill ${o.stato}">${ST[o.stato]}</span></td>
@@ -157,7 +158,7 @@
         modal(`<h2 style="margin-top:0">Ordine ${o.numero}</h2>
           <dl class="kv">
             <dt>Data</dt><dd>${App.dateFmt(o.created_at)}</dd>
-            <dt>Cliente</dt><dd>${nomeCliente(o)} (${o.tipo === "b2b" ? "locale" : "privato"})<br>${esc(p.email || "")} · ${esc(a.telefono || p.telefono || "")}</dd>
+            <dt>Cliente</dt><dd>${nomeCliente(o)} (${(TIPO[o.tipo] || o.tipo).toLowerCase()})<br>${esc(p.email || "")} · ${esc(a.telefono || p.telefono || "")}</dd>
             <dt>Consegna</dt><dd>${esc([a.ragione_sociale, (a.nome || "") + " " + (a.cognome || ""), a.via, (a.cap || "") + " " + (a.citta || "") + " (" + (a.prov || "") + ")"].filter(x => x && x.trim()).join(", "))}</dd>
             <dt>Note</dt><dd>${esc(o.note || "—")}</dd>
             <dt>Pagamento</dt><dd>${PM[o.metodo_pagamento]} · ${o.pagato ? "pagato" + (o.pagato_il ? " il " + App.dateFmt(o.pagato_il) : "") : "non pagato"}${o.sumup_checkout_id ? "<br><span class='small muted'>SumUp: " + esc(o.sumup_checkout_id) + "</span>" : ""}</dd>
@@ -182,17 +183,17 @@
       }
       function renderClienti() {
         const prodB2b = window._prodB2b || [];
-        const list = clienti.filter(c => cliF === "tutti" ? true : cliF === "b2c" ? c.tipo === "b2c" : cliF === "b2b" ? c.tipo === "b2b" : (c.tipo === "b2b" && !c.approvato));
+        const list = clienti.filter(c => cliF === "tutti" ? true : cliF === "b2b_pending" ? (c.tipo !== "b2c" && !c.approvato) : c.tipo === cliF);
         el("cli-body").innerHTML = list.length ? list.map(c => {
           const prezzi = {}; (c.prezzi_cliente || []).forEach(x => prezzi[x.product_id] = x.prezzo);
-          const priceInputs = c.tipo === "b2b" ? prodB2b.map(p => `<label class="small" style="margin:.2rem 0">${esc(p.nome_it)}</label><input type="number" step="0.01" min="0" data-price="${c.id}|${p.id}" value="${prezzi[p.id] != null ? prezzi[p.id] : ""}" placeholder="€ a cartone" style="max-width:150px">`).join("") : '<span class="muted small">—</span>';
+          const priceInputs = c.tipo !== "b2c" ? prodB2b.map(p => `<label class="small" style="margin:.2rem 0">${esc(p.nome_it)}</label><input type="number" step="0.01" min="0" data-price="${c.id}|${p.id}" value="${prezzi[p.id] != null ? prezzi[p.id] : ""}" placeholder="€ a cartone" style="max-width:150px">`).join("") : '<span class="muted small">—</span>';
           return `<tr>
-            <td><b>${esc(c.ragione_sociale || ((c.nome || "") + " " + (c.cognome || "")))}</b><br><span class="small muted">${c.tipo === "b2b" ? "Locale" : "Privato"} · dal ${App.dateFmt(c.created_at).split(",")[0]}</span>${c.ruolo === "admin" ? ' <span class="pill paid">admin</span>' : ""}</td>
+            <td><b>${esc(c.ragione_sociale || ((c.nome || "") + " " + (c.cognome || "")))}</b><br><span class="small muted">${TIPO[c.tipo] || c.tipo} · dal ${App.dateFmt(c.created_at).split(",")[0]}</span>${c.ruolo === "admin" ? ' <span class="pill paid">admin</span>' : ""}</td>
             <td class="small">${esc(c.email || "")}<br>${esc(c.telefono || "")}${c.indirizzo && c.indirizzo.citta ? "<br>" + esc(c.indirizzo.citta) : ""}</td>
-            <td class="small">${c.tipo === "b2b" ? "P.IVA " + esc(c.piva || "—") + "<br>SDI " + esc(c.sdi || "—") + "<br>PEC " + esc(c.pec || "—") : "—"}</td>
+            <td class="small">${c.tipo !== "b2c" ? "P.IVA " + esc(c.piva || "—") + "<br>SDI " + esc(c.sdi || "—") + "<br>PEC " + esc(c.pec || "—") : "—"}</td>
             <td>${priceInputs}</td>
-            <td>${c.tipo === "b2b" ? '<span class="pill ' + (c.approvato ? "paid" : "unpaid") + '">' + (c.approvato ? "Attivo" : "Da attivare") + '</span>' : ""}</td>
-            <td>${c.tipo === "b2b" ? '<div class="actions"><button class="btn sm basil" data-save="' + c.id + '" data-appr="1">Salva e attiva</button>' + (c.approvato ? '<button class="btn sm ghost" data-save="' + c.id + '" data-appr="0">Sospendi</button>' : "") + "</div>" : ""}</td>
+            <td>${c.tipo !== "b2c" ? '<span class="pill ' + (c.approvato ? "paid" : "unpaid") + '">' + (c.approvato ? "Attivo" : "Da attivare") + '</span>' : ""}</td>
+            <td>${c.tipo !== "b2c" ? '<div class="actions"><button class="btn sm basil" data-save="' + c.id + '" data-appr="1">Salva e attiva</button>' + (c.approvato ? '<button class="btn sm ghost" data-save="' + c.id + '" data-appr="0">Sospendi</button>' : "") + "</div>" : ""}</td>
           </tr>`;
         }).join("") : '<tr><td colspan="6" class="muted">Nessun cliente.</td></tr>';
         el("cli-body").querySelectorAll("[data-save]").forEach(b => b.onclick = async () => {
@@ -264,7 +265,7 @@
       function renderStats() {
         el("st-pagare").textContent = ordini.filter(o => o.stato === "da_pagare").length;
         el("st-spedire").textContent = ordini.filter(o => o.stato === "da_spedire").length;
-        el("st-b2b").textContent = clienti.filter(c => c.tipo === "b2b" && !c.approvato).length;
+        el("st-b2b").textContent = clienti.filter(c => c.tipo !== "b2c" && !c.approvato).length;
         const now = new Date();
         el("st-mese").textContent = money(ordini.filter(o => o.pagato && new Date(o.pagato_il || o.created_at).getMonth() === now.getMonth() && new Date(o.pagato_il || o.created_at).getFullYear() === now.getFullYear()).reduce((s, o) => s + Number(o.totale), 0));
       }

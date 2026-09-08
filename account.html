@@ -40,6 +40,7 @@
         <div class="choice" style="margin-bottom:1.2rem">
           <label><input type="radio" name="tipo" value="b2c" checked><span><b data-i18n="acc.b2c">Privato</b><small data-i18n="acc.b2cD">Ordino per casa</small></span></label>
           <label><input type="radio" name="tipo" value="b2b"><span><b data-i18n="acc.b2b">Locale / azienda</b><small data-i18n="acc.b2bD">Pizzeria, ristorante, bar, negozio</small></span></label>
+          <label><input type="radio" name="tipo" value="rivenditore"><span><b data-i18n="acc.riv">Rivenditore / grossista</b><small data-i18n="acc.rivD">Distributori, grossisti, rappresentanti</small></span></label>
         </div>
         <div id="reg-b2b" hidden>
           <div class="field"><label data-i18n="co.company">Ragione sociale</label><input id="r-company" autocomplete="organization"></div>
@@ -140,8 +141,9 @@
       // tabs
       function showTab(reg) { el("tab-login").classList.toggle("on", !reg); el("tab-reg").classList.toggle("on", reg); el("login").hidden = reg; el("reg").hidden = !reg; }
       el("tab-login").onclick = () => showTab(false); el("tab-reg").onclick = () => showTab(true);
-      document.querySelectorAll("input[name=tipo]").forEach(r => r.addEventListener("change", () => { el("reg-b2b").hidden = r.value !== "b2b" || !r.checked; }));
-      if (App.qs("tipo") === "b2b") { document.querySelector("input[name=tipo][value=b2b]").checked = true; el("reg-b2b").hidden = false; showTab(true); }
+      document.querySelectorAll("input[name=tipo]").forEach(r => r.addEventListener("change", () => { if (r.checked) el("reg-b2b").hidden = r.value === "b2c"; }));
+      const tipoUrl = App.qs("tipo");
+      if (tipoUrl === "b2b" || tipoUrl === "rivenditore") { document.querySelector("input[name=tipo][value=" + tipoUrl + "]").checked = true; el("reg-b2b").hidden = false; showTab(true); }
 
       function gotoNext() { location.href = next ? decodeURIComponent(next) : "account.html"; }
 
@@ -164,12 +166,12 @@
         e.preventDefault(); errBox("r-err", "");
         const tipo = document.querySelector("input[name=tipo]:checked").value;
         const v = id => el(id).value.trim();
-        if (!v("r-nome") || !v("r-cognome") || !v("r-tel") || !v("r-email") || (tipo === "b2b" && (!v("r-company") || !v("r-piva")))) { errBox("r-err", Lang.t("co.errFields")); return; }
+        if (!v("r-nome") || !v("r-cognome") || !v("r-tel") || !v("r-email") || (tipo !== "b2c" && (!v("r-company") || !v("r-piva")))) { errBox("r-err", Lang.t("co.errFields")); return; }
         if (el("r-pass").value.length < 8) { errBox("r-err", Lang.t("acc.errPassLen")); return; }
         if (el("r-pass").value !== el("r-pass2").value) { errBox("r-err", Lang.t("acc.errPass")); return; }
         if (!el("r-priv").checked) { errBox("r-err", Lang.t("co.errTerms")); return; }
         const meta = { tipo, nome: v("r-nome"), cognome: v("r-cognome"), telefono: v("r-tel"), lingua: Lang.get() };
-        if (tipo === "b2b") Object.assign(meta, { ragione_sociale: v("r-company"), piva: v("r-piva"), sdi: v("r-sdi").toUpperCase(), pec: v("r-pec") });
+        if (tipo !== "b2c") Object.assign(meta, { ragione_sociale: v("r-company"), piva: v("r-piva"), sdi: v("r-sdi").toUpperCase(), pec: v("r-pec") });
         const { data, error } = await App.db.auth.signUp({ email: v("r-email"), password: el("r-pass").value, options: { data: meta, emailRedirectTo: location.origin + location.pathname.replace(/[^/]*$/, "") + "account.html" } });
         if (error) { errBox("r-err", /already|registered|exists/i.test(error.message) ? Lang.t("acc.errExists") : error.message); return; }
         if (data.session) { if (next) gotoNext(); }
@@ -207,9 +209,9 @@
       function fillProfile() {
         const p = App.profile || {}, a = p.indirizzo || {};
         el("me-name").textContent = p.nome || p.ragione_sociale || ""; el("me-email").textContent = App.user.email;
-        el("p-b2b").hidden = p.tipo !== "b2b";
-        el("me-b2b").hidden = p.tipo !== "b2b";
-        if (p.tipo === "b2b") { el("me-b2b").className = "notice " + (p.approvato ? "ok" : "warn"); el("me-b2b-txt").textContent = p.approvato ? Lang.t("acc.b2bOk") : Lang.t("acc.b2bPending"); }
+        el("p-b2b").hidden = p.tipo === "b2c";
+        el("me-b2b").hidden = p.tipo === "b2c";
+        if (p.tipo !== "b2c") { el("me-b2b").className = "notice " + (p.approvato ? "ok" : "warn"); el("me-b2b-txt").textContent = p.approvato ? Lang.t("acc.b2bOk") : Lang.t("acc.b2bPending"); }
         el("p-company").value = p.ragione_sociale || ""; el("p-piva").value = p.piva || ""; el("p-sdi").value = p.sdi || ""; el("p-pec").value = p.pec || "";
         el("p-nome").value = p.nome || ""; el("p-cognome").value = p.cognome || ""; el("p-tel").value = p.telefono || "";
         el("p-via").value = a.via || ""; el("p-citta").value = a.citta || ""; el("p-cap").value = a.cap || ""; el("p-prov").value = a.prov || "";

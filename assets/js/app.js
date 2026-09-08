@@ -40,7 +40,7 @@ const App = (function () {
     return profile;
   }
   function isAdmin() { return !!(profile && profile.ruolo === "admin"); }
-  function isB2B() { return !!(profile && profile.tipo === "b2b"); }
+  function isB2B() { return !!(profile && (profile.tipo === "b2b" || profile.tipo === "rivenditore")); }
   function b2bAttivo() { return isB2B() && !!profile.approvato; }
   function onAuth(fn) { listeners.push(fn); }
   function fire() { listeners.forEach(fn => { try { fn(user, profile); } catch (e) { console.error(e); } }); renderHeader(); }
