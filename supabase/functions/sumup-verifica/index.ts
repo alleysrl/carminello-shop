@@ -5,6 +5,14 @@
 // ============================================================================
 import { createClient } from "npm:@supabase/supabase-js@2";
 
+// Chiavi del progetto: Supabase ora le fornisce come elenco JSON; resta il ripiego sulle vecchie.
+function pickKey(json: string | undefined, legacy: string | undefined): string {
+  if (json) { try { const j = JSON.parse(json); const v = Array.isArray(j) ? j[0] : Object.values(j)[0]; const k = typeof v === "string" ? v : (v?.api_key || v?.key || v?.secret); if (k) return k; } catch (_) { /* ignora */ } }
+  return legacy || "";
+}
+const ANON_KEY = pickKey(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS"), Deno.env.get("SUPABASE_ANON_KEY"));
+const SERVICE_KEY = pickKey(Deno.env.get("SUPABASE_SECRET_KEYS"), Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"));
+
 const cors = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -16,8 +24,8 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   try {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-    const ANON = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const ANON = ANON_KEY;
+    const SERVICE = SERVICE_KEY;
     const SUMUP_KEY = Deno.env.get("SUMUP_API_KEY");
     if (!SUMUP_KEY) return json({ error: "SumUp non configurato" }, 500);
 

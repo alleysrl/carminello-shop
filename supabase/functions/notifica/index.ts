@@ -6,6 +6,14 @@
 // ============================================================================
 import { createClient } from "npm:@supabase/supabase-js@2";
 
+// Chiavi del progetto: Supabase ora le fornisce come elenco JSON; resta il ripiego sulle vecchie.
+function pickKey(json: string | undefined, legacy: string | undefined): string {
+  if (json) { try { const j = JSON.parse(json); const v = Array.isArray(j) ? j[0] : Object.values(j)[0]; const k = typeof v === "string" ? v : (v?.api_key || v?.key || v?.secret); if (k) return k; } catch (_) { /* ignora */ } }
+  return legacy || "";
+}
+const ANON_KEY = pickKey(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS"), Deno.env.get("SUPABASE_ANON_KEY"));
+const SERVICE_KEY = pickKey(Deno.env.get("SUPABASE_SECRET_KEYS"), Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"));
+
 const eur = (n: unknown) => new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" }).format(Number(n || 0));
 const esc = (s: unknown) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]!));
 
@@ -52,7 +60,7 @@ Deno.serve(async (req) => {
 
     const payload = await req.json();
     const { type, table, record, old_record } = payload;
-    const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const admin = createClient(Deno.env.get("SUPABASE_URL")!, SERVICE_KEY);
     const { data: imps } = await admin.from("impostazioni").select("chiave,valore");
     const imp: Record<string, any> = {}; (imps || []).forEach((r: any) => imp[r.chiave] = r.valore);
     const ownerEmail = imp.notifiche?.email || "info@carminello.eu";
