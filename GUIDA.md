@@ -169,6 +169,11 @@ Apri il sito → **Pannello** (compare solo se sei collegato con l'account ammin
 
 ---
 
+## 6bis. Stato al 8 settembre 2026 (fatto insieme a Claude)
+- Supabase, sito, dashboard (https://alleysrl.github.io/carminello-dashboard/), Brevo, i tre programmi e i due webhook sono **già configurati e provati**.
+- Nelle funzioni la voce "Verify JWT with legacy secret" è **spenta** di proposito: le funzioni controllano da sole chi le chiama.
+- Manca solo SumUp: quando avrai la chiave, aggiungi in *Edge Functions → Secrets* `SUMUP_API_KEY` e `SUMUP_MERCHANT_CODE`. Nient'altro da cambiare.
+
 ## 7. Se qualcosa non va
 
 | Problema | Cosa controllare |
