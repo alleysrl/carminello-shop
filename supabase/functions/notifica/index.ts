@@ -72,11 +72,11 @@ async function inviaPush(admin: any, titolo: string, testo: string, url: string,
 const PM: Record<string, string> = { carta: "Carta (SumUp)", bonifico: "Bonifico bancario", contrassegno: "Contrassegno" };
 const ST: Record<string, string> = { da_pagare: "In attesa di pagamento", da_spedire: "In preparazione", spedito: "Spedito", annullato: "Annullato" };
 
+const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type" };
 Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   try {
     const payload = await req.json();
-    const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type" };
-    if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
 
     // Prova manuale dalla dashboard: serve il token di un amministratore
     if (payload?.type === "TEST") {
