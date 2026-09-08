@@ -5,6 +5,7 @@
 // Secrets: BREVO_API_KEY, SENDER_EMAIL, SENDER_NAME, SITE_URL, WEBHOOK_SECRET
 // ============================================================================
 import { createClient } from "npm:@supabase/supabase-js@2";
+import webpush from "npm:web-push@3.6.7";
 
 // Chiavi del progetto: Supabase ora le fornisce come elenco JSON; resta il ripiego sulle vecchie.
 function pickKey(json: string | undefined, legacy: string | undefined): string {
@@ -50,15 +51,46 @@ function righeHtml(o: any) {
 function indirizzoHtml(a: any) {
   return esc([a?.ragione_sociale, `${a?.nome || ""} ${a?.cognome || ""}`.trim(), a?.via, `${a?.cap || ""} ${a?.citta || ""} ${a?.prov ? "(" + a.prov + ")" : ""}`.trim(), a?.telefono].filter((x) => x && String(x).trim()).join(" · "));
 }
+
+// ---- Notifiche push (telefono/Mac) a tutti i dispositivi registrati dall'amministratore ----
+async function inviaPush(admin: any, titolo: string, testo: string, url: string, badge?: number) {
+  const PUB = Deno.env.get("VAPID_PUBLIC_KEY"), PRIV = Deno.env.get("VAPID_PRIVATE_KEY");
+  if (!PUB || !PRIV) { console.log("Push non inviata: mancano le chiavi VAPID"); return { inviate: 0 }; }
+  webpush.setVapidDetails(Deno.env.get("VAPID_SUBJECT") || "mailto:info@carminello.eu", PUB, PRIV);
+  const { data: subs } = await admin.from("push_subscriptions").select("endpoint, sub");
+  let inviate = 0;
+  for (const s of subs || []) {
+    try { await webpush.sendNotification(s.sub, JSON.stringify({ title: titolo, body: testo, url, badge })); inviate++; }
+    catch (e: any) {
+      console.error("push", s.endpoint.slice(0, 60), e?.statusCode || e?.message);
+      if (e?.statusCode === 404 || e?.statusCode === 410) await admin.from("push_subscriptions").delete().eq("endpoint", s.endpoint);
+    }
+  }
+  return { inviate };
+}
+
 const PM: Record<string, string> = { carta: "Carta (SumUp)", bonifico: "Bonifico bancario", contrassegno: "Contrassegno" };
 const ST: Record<string, string> = { da_pagare: "In attesa di pagamento", da_spedire: "In preparazione", spedito: "Spedito", annullato: "Annullato" };
 
 Deno.serve(async (req) => {
   try {
+    const payload = await req.json();
+    const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type" };
+    if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
+
+    // Prova manuale dalla dashboard: serve il token di un amministratore
+    if (payload?.type === "TEST") {
+      const userClient = createClient(Deno.env.get("SUPABASE_URL")!, ANON_KEY, { global: { headers: { Authorization: req.headers.get("Authorization") || "" } } });
+      const { data: { user } } = await userClient.auth.getUser();
+      const adm = createClient(Deno.env.get("SUPABASE_URL")!, SERVICE_KEY);
+      const { data: prof } = user ? await adm.from("profiles").select("ruolo").eq("id", user.id).maybeSingle() : { data: null };
+      if (!prof || prof.ruolo !== "admin") return new Response(JSON.stringify({ error: "Non autorizzato" }), { status: 403, headers: { ...cors, "Content-Type": "application/json" } });
+      const r = await inviaPush(adm, "Carminello Dashboard", "Le notifiche push funzionano su questo dispositivo.", "#/cruscotto", 1);
+      return new Response(JSON.stringify({ ok: true, ...r }), { headers: { ...cors, "Content-Type": "application/json" } });
+    }
+
     const secret = Deno.env.get("WEBHOOK_SECRET");
     if (secret && req.headers.get("x-webhook-secret") !== secret) return new Response("forbidden", { status: 403 });
-
-    const payload = await req.json();
     const { type, table, record, old_record } = payload;
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, SERVICE_KEY);
     const { data: imps } = await admin.from("impostazioni").select("chiave,valore");
@@ -80,6 +112,11 @@ Deno.serve(async (req) => {
           ${o.note ? `<p><b>Note:</b> ${esc(o.note)}</p>` : ""}
           ${righeHtml(o)}
           ${site ? `<p style="margin-top:20px"><a href="${site}/admin.html" style="background:#c8452b;color:#fff;padding:10px 18px;border-radius:999px;text-decoration:none">Apri il pannello</a></p>` : ""}`));
+      // push sul telefono/Mac del titolare, con il numero degli ordini non ancora visti
+      try {
+        const { count } = await admin.from("orders").select("id", { count: "exact", head: true }).eq("visto", false);
+        await inviaPush(admin, `Nuovo ordine n. ${o.numero}`, `${cliente}: ${o.cartoni} cartoni, ${eur(o.totale)} (${PM[o.metodo_pagamento]})`, "#/ordini", count || 1);
+      } catch (e) { console.error("push ordine", e); }
       // al cliente
       let extra = "";
       if (o.metodo_pagamento === "bonifico") {
@@ -117,6 +154,7 @@ Deno.serve(async (req) => {
     // ---- NUOVO LOCALE REGISTRATO → avviso al titolare ----
     if (table === "profiles" && type === "INSERT" && (record.tipo === "b2b" || record.tipo === "rivenditore")) {
       const c = record;
+      try { await inviaPush(admin, c.tipo === "rivenditore" ? "Nuovo rivenditore da attivare" : "Nuovo locale da attivare", `${c.ragione_sociale || c.email} · ${c.telefono || ""}`, "#/clienti/attivare"); } catch (e) { console.error("push registrazione", e); }
       await sendMail(ownerEmail, `Nuovo ${c.tipo === "rivenditore" ? "rivenditore" : "locale"} registrato: ${c.ragione_sociale || c.email}`,
         layout(c.tipo === "rivenditore" ? "Nuovo rivenditore da attivare" : "Nuovo locale da attivare", `
           <p><b>${esc(c.ragione_sociale)}</b><br>${esc(c.nome)} ${esc(c.cognome)}<br>${esc(c.email)} · ${esc(c.telefono)}<br>P.IVA ${esc(c.piva)}${c.sdi ? " · SDI " + esc(c.sdi) : ""}${c.pec ? " · PEC " + esc(c.pec) : ""}</p>
