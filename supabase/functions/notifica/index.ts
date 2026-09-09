@@ -152,6 +152,18 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ---- PRIVATO CHE CHIEDE DI DIVENTARE LOCALE/RIVENDITORE → avviso al titolare ----
+    if (table === "profiles" && type === "UPDATE" && (record.tipo === "b2b" || record.tipo === "rivenditore") && old_record?.tipo === "b2c") {
+      const c = record; const cosa = c.tipo === "rivenditore" ? "rivenditore" : "locale";
+      try { await inviaPush(admin, `Richiesta: vuole diventare ${cosa}`, `${c.ragione_sociale || c.email} · ${c.telefono || ""}`, "#/clienti/attivare"); } catch (e) { console.error("push upgrade", e); }
+      await sendMail(ownerEmail, `${c.ragione_sociale || c.email} chiede di diventare ${cosa}`,
+        layout(`Richiesta di passaggio a ${cosa}`, `
+          <p>Un cliente privato ha chiesto di passare ad account ${cosa}:</p>
+          <p><b>${esc(c.ragione_sociale)}</b><br>${esc(c.nome)} ${esc(c.cognome)}<br>${esc(c.email)} · ${esc(c.telefono)}<br>P.IVA ${esc(c.piva)}${c.sdi ? " · SDI " + esc(c.sdi) : ""}${c.pec ? " · PEC " + esc(c.pec) : ""}</p>
+          <p>Contattalo, concorda il prezzo e attivalo dalla dashboard.</p>
+          ${site ? `<p><a href="https://alleysrl.github.io/carminello-dashboard/#/clienti/attivare" style="background:#c8452b;color:#fff;padding:10px 18px;border-radius:999px;text-decoration:none">Apri la dashboard</a></p>` : ""}`));
+    }
+
     // ---- NUOVO LOCALE REGISTRATO → avviso al titolare ----
     if (table === "profiles" && type === "INSERT" && (record.tipo === "b2b" || record.tipo === "rivenditore")) {
       const c = record;

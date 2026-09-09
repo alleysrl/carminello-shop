@@ -132,6 +132,8 @@ it: {
   "acc.saved": "Dati salvati.", "acc.errPass": "Le password non coincidono.", "acc.errPassLen": "La password deve avere almeno 8 caratteri.",
   "acc.errLogin": "Email o password non corretti.", "acc.errExists": "Esiste già un account con questa email.",
   "acc.reorder": "Riordina", "acc.view": "Vedi",
+  "acc.up.t": "Hai un locale o sei un rivenditore?", "acc.up.p": "Passa all'account aziendale: inserisci la Partita IVA, ti contattiamo per concordare il prezzo e da quel momento ordini il formato professionale, anche in contrassegno.",
+  "acc.up.btn": "Chiedi il passaggio ad account aziendale", "acc.up.ok": "Richiesta inviata! Ti contattiamo a breve per concordare il prezzo.", "acc.up.warn": "Attenzione: fino all'attivazione non potrai fare nuovi ordini come privato.",
 
   "info.ship.t": "Spedizioni",
   "info.ship.p1": "Spediamo in tutta Italia, sia pacchi singoli che box multipli.",
@@ -276,6 +278,8 @@ en: {
   "acc.saved": "Details saved.", "acc.errPass": "Passwords don't match.", "acc.errPassLen": "Password must be at least 8 characters.",
   "acc.errLogin": "Wrong email or password.", "acc.errExists": "An account with this email already exists.",
   "acc.reorder": "Reorder", "acc.view": "View",
+  "acc.up.t": "Do you own a business or resell?", "acc.up.p": "Switch to a business account: enter your VAT number, we will contact you to agree on a price, and from then on you order the professional format, cash on delivery too.",
+  "acc.up.btn": "Request the switch to a business account", "acc.up.ok": "Request sent! We will contact you shortly to agree on a price.", "acc.up.warn": "Note: until activation you will not be able to place new orders as a private customer.",
 
   "info.ship.t": "Shipping",
   "info.ship.p1": "We ship all over Italy, both single parcels and multiple boxes.",
