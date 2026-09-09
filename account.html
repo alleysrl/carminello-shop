@@ -106,6 +106,32 @@
         <div id="orders" class="order-list"></div>
       </div>
 
+      <div class="card" id="up-card" hidden>
+        <h3 data-i18n="acc.up.t">Hai un locale o sei un rivenditore?</h3>
+        <p class="muted" data-i18n="acc.up.p">Passa all'account aziendale: inserisci la Partita IVA, ti contattiamo per concordare il prezzo e da quel momento ordini il formato professionale, anche in contrassegno.</p>
+        <form id="up-form" novalidate>
+          <div class="choice" style="margin-bottom:1rem">
+            <label><input type="radio" name="up-tipo" value="b2b" checked><span><b data-i18n="acc.b2b">Locale / azienda</b><small data-i18n="acc.b2bD">Pizzeria, ristorante, bar, negozio</small></span></label>
+            <label><input type="radio" name="up-tipo" value="rivenditore"><span><b data-i18n="acc.riv">Rivenditore / grossista</b><small data-i18n="acc.rivD">Distributori, grossisti, rappresentanti</small></span></label>
+          </div>
+          <div class="field"><label data-i18n="acc.piva">Partita IVA</label><input id="u-piva" inputmode="numeric" maxlength="11" autocomplete="off"><div class="small muted" id="u-piva-msg" style="margin-top:.35rem" data-i18n="acc.pivaHint">Inserisci le 11 cifre: ragione sociale e indirizzo si compilano da soli.</div></div>
+          <div class="field"><label data-i18n="co.company">Ragione sociale</label><input id="u-company"></div>
+          <div class="field"><label data-i18n="co.address">Via e numero civico</label><input id="u-via"></div>
+          <div class="row three">
+            <div class="field"><label data-i18n="co.city">Città</label><input id="u-citta"></div>
+            <div class="field"><label data-i18n="co.zip">CAP</label><input id="u-cap" inputmode="numeric"></div>
+            <div class="field"><label data-i18n="co.prov">Provincia</label><input id="u-prov" maxlength="2" style="text-transform:uppercase"></div>
+          </div>
+          <div class="row">
+            <div class="field"><label data-i18n="acc.sdi">Codice SDI (facoltativo)</label><input id="u-sdi" maxlength="7" style="text-transform:uppercase"></div>
+            <div class="field"><label data-i18n="acc.pec">PEC (facoltativa)</label><input id="u-pec" type="email"></div>
+          </div>
+          <p class="small muted" data-i18n="acc.up.warn">Attenzione: fino all'attivazione non potrai fare nuovi ordini come privato.</p>
+          <div class="err" id="u-err" hidden></div>
+          <button class="btn" type="submit" data-i18n="acc.up.btn">Chiedi il passaggio ad account aziendale</button>
+        </form>
+      </div>
+
       <div class="card">
         <h3 data-i18n="acc.profile">I tuoi dati</h3>
         <form id="prof" novalidate>
@@ -189,24 +215,39 @@
       });
 
       // ---- Partita IVA → ragione sociale e indirizzo dall'archivio VIES ----
-      let pivaUltima = "";
+      const pivaUltima = {};
       // controllo del codice di una Partita IVA italiana (intercetta gli errori di battitura)
       function pivaValida(p) { if (!/^\d{11}$/.test(p)) return false; let s = 0; for (let i = 0; i < 11; i++) { let d = +p[i]; if (i % 2) { d *= 2; if (d > 9) d -= 9; } s += d; } return s % 10 === 0; }
-      async function cercaPiva() {
-        const piva = el("r-piva").value.replace(/\D/g, ""); el("r-piva").value = piva;
-        const msg = el("r-piva-msg"); msg.style.color = "";
-        if (piva.length !== 11 || piva === pivaUltima || !App.db) return;
-        if (!pivaValida(piva)) { pivaUltima = piva; msg.textContent = Lang.t("acc.pivaBad"); msg.style.color = "var(--terra-d)"; return; }
-        pivaUltima = piva; msg.textContent = Lang.t("acc.pivaSearch");
-        const { data, error } = await App.db.functions.invoke("piva", { body: { piva } });
-        if (error || !data) { msg.textContent = Lang.t("acc.pivaErr"); msg.style.color = "var(--terra-d)"; return; }
-        if (!data.valid) { msg.textContent = Lang.t("acc.pivaKo"); msg.style.color = "var(--terra-d)"; return; }
-        if (!el("r-company").value.trim()) el("r-company").value = data.ragione_sociale || "";
-        if (!el("r-via").value.trim()) { el("r-via").value = data.via || ""; el("r-citta").value = data.citta || ""; el("r-cap").value = data.cap || ""; el("r-prov").value = data.prov || ""; }
-        msg.textContent = Lang.t("acc.pivaOk") + " " + (data.ragione_sociale || "") + (data.citta ? " · " + data.citta : ""); msg.style.color = "var(--basil)";
+      function collegaPiva(pre) {   // pre = "r" (registrazione) oppure "u" (passaggio ad azienda)
+        const inp = el(pre + "-piva"), msg = el(pre + "-piva-msg");
+        async function cerca() {
+          const piva = inp.value.replace(/\D/g, ""); inp.value = piva; msg.style.color = "";
+          if (piva.length !== 11 || piva === pivaUltima[pre] || !App.db) return;
+          if (!pivaValida(piva)) { pivaUltima[pre] = piva; msg.textContent = Lang.t("acc.pivaBad"); msg.style.color = "var(--terra-d)"; return; }
+          pivaUltima[pre] = piva; msg.textContent = Lang.t("acc.pivaSearch");
+          const { data, error } = await App.db.functions.invoke("piva", { body: { piva } });
+          if (error || !data) { msg.textContent = Lang.t("acc.pivaErr"); msg.style.color = "var(--terra-d)"; return; }
+          if (!data.valid) { msg.textContent = Lang.t("acc.pivaKo"); msg.style.color = "var(--terra-d)"; return; }
+          if (!el(pre + "-company").value.trim()) el(pre + "-company").value = data.ragione_sociale || "";
+          if (!el(pre + "-via").value.trim()) { el(pre + "-via").value = data.via || ""; el(pre + "-citta").value = data.citta || ""; el(pre + "-cap").value = data.cap || ""; el(pre + "-prov").value = data.prov || ""; }
+          msg.textContent = Lang.t("acc.pivaOk") + " " + (data.ragione_sociale || "") + (data.citta ? " · " + data.citta : ""); msg.style.color = "var(--basil)";
+        }
+        inp.addEventListener("input", () => { if (inp.value.replace(/\D/g, "").length === 11) cerca(); });
+        inp.addEventListener("blur", cerca);
       }
-      el("r-piva").addEventListener("input", () => { if (el("r-piva").value.replace(/\D/g, "").length === 11) cercaPiva(); });
-      el("r-piva").addEventListener("blur", cercaPiva);
+      collegaPiva("r"); collegaPiva("u");
+
+      // ---- passaggio da privato ad account aziendale ----
+      el("up-form").addEventListener("submit", async e => {
+        e.preventDefault(); errBox("u-err", ""); const v = id => el(id).value.trim();
+        if (!pivaValida(v("u-piva")) || !v("u-company")) { errBox("u-err", Lang.t("co.errFields")); return; }
+        const tipo = document.querySelector("input[name=up-tipo]:checked").value;
+        const dati = { piva: v("u-piva"), ragione_sociale: v("u-company"), sdi: v("u-sdi").toUpperCase(), pec: v("u-pec") };
+        if (v("u-via")) dati.indirizzo = { via: v("u-via"), citta: v("u-citta"), cap: v("u-cap"), prov: v("u-prov").toUpperCase() };
+        const { error } = await App.db.rpc("richiedi_tipo_azienda", { p_tipo: tipo, p_dati: dati });
+        if (error) { errBox("u-err", error.message); return; }
+        await App.loadProfile(); App.renderHeader(); showMsg(Lang.t("acc.up.ok")); render();
+      });
 
       // ---- recupero password ----
       function showRecovery() { el("guest").hidden = true; el("me").hidden = true; el("recovery").hidden = false; }
@@ -239,6 +280,7 @@
       function fillProfile() {
         const p = App.profile || {}, a = p.indirizzo || {};
         el("me-name").textContent = p.nome || p.ragione_sociale || ""; el("me-email").textContent = App.user.email;
+        el("up-card").hidden = p.tipo !== "b2c";
         el("p-b2b").hidden = p.tipo === "b2c";
         el("me-b2b").hidden = p.tipo === "b2c";
         if (p.tipo !== "b2c") { el("me-b2b").className = "notice " + (p.approvato ? "ok" : "warn"); el("me-b2b-txt").textContent = p.approvato ? Lang.t("acc.b2bOk") : Lang.t("acc.b2bPending"); }
