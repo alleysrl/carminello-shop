@@ -43,9 +43,18 @@
           <label><input type="radio" name="tipo" value="rivenditore"><span><b data-i18n="acc.riv">Rivenditore / grossista</b><small data-i18n="acc.rivD">Distributori, grossisti, rappresentanti</small></span></label>
         </div>
         <div id="reg-b2b" hidden>
+          <div class="field">
+            <label data-i18n="acc.piva">Partita IVA</label><input id="r-piva" inputmode="numeric" maxlength="11" autocomplete="off">
+            <div class="small muted" id="r-piva-msg" style="margin-top:.35rem" data-i18n="acc.pivaHint">Inserisci le 11 cifre: ragione sociale e indirizzo si compilano da soli.</div>
+          </div>
           <div class="field"><label data-i18n="co.company">Ragione sociale</label><input id="r-company" autocomplete="organization"></div>
+          <div class="field"><label data-i18n="co.address">Via e numero civico</label><input id="r-via" autocomplete="street-address"></div>
           <div class="row three">
-            <div class="field"><label data-i18n="acc.piva">Partita IVA</label><input id="r-piva" inputmode="numeric"></div>
+            <div class="field"><label data-i18n="co.city">Città</label><input id="r-citta"></div>
+            <div class="field"><label data-i18n="co.zip">CAP</label><input id="r-cap" inputmode="numeric"></div>
+            <div class="field"><label data-i18n="co.prov">Provincia</label><input id="r-prov" maxlength="2" style="text-transform:uppercase"></div>
+          </div>
+          <div class="row">
             <div class="field"><label data-i18n="acc.sdi">Codice SDI (facoltativo)</label><input id="r-sdi" maxlength="7" style="text-transform:uppercase"></div>
             <div class="field"><label data-i18n="acc.pec">PEC (facoltativa)</label><input id="r-pec" type="email"></div>
           </div>
@@ -171,12 +180,30 @@
         if (el("r-pass").value !== el("r-pass2").value) { errBox("r-err", Lang.t("acc.errPass")); return; }
         if (!el("r-priv").checked) { errBox("r-err", Lang.t("co.errTerms")); return; }
         const meta = { tipo, nome: v("r-nome"), cognome: v("r-cognome"), telefono: v("r-tel"), lingua: Lang.get() };
+        if (tipo !== "b2c" && v("r-via")) meta.indirizzo = { via: v("r-via"), citta: v("r-citta"), cap: v("r-cap"), prov: v("r-prov").toUpperCase() };
         if (tipo !== "b2c") Object.assign(meta, { ragione_sociale: v("r-company"), piva: v("r-piva"), sdi: v("r-sdi").toUpperCase(), pec: v("r-pec") });
         const { data, error } = await App.db.auth.signUp({ email: v("r-email"), password: el("r-pass").value, options: { data: meta, emailRedirectTo: location.origin + location.pathname.replace(/[^/]*$/, "") + "account.html" } });
         if (error) { errBox("r-err", /already|registered|exists/i.test(error.message) ? Lang.t("acc.errExists") : error.message); return; }
         if (data.session) { if (next) gotoNext(); }
         else { showMsg(Lang.t("acc.checkMail")); el("reg").reset(); showTab(false); }
       });
+
+      // ---- Partita IVA → ragione sociale e indirizzo dall'archivio VIES ----
+      let pivaUltima = "";
+      async function cercaPiva() {
+        const piva = el("r-piva").value.replace(/\D/g, ""); el("r-piva").value = piva;
+        const msg = el("r-piva-msg"); msg.style.color = "";
+        if (piva.length !== 11 || piva === pivaUltima || !App.db) return;
+        pivaUltima = piva; msg.textContent = Lang.t("acc.pivaSearch");
+        const { data, error } = await App.db.functions.invoke("piva", { body: { piva } });
+        if (error || !data) { msg.textContent = Lang.t("acc.pivaErr"); msg.style.color = "var(--terra-d)"; return; }
+        if (!data.valid) { msg.textContent = Lang.t("acc.pivaKo"); msg.style.color = "var(--terra-d)"; return; }
+        if (!el("r-company").value.trim()) el("r-company").value = data.ragione_sociale || "";
+        if (!el("r-via").value.trim()) { el("r-via").value = data.via || ""; el("r-citta").value = data.citta || ""; el("r-cap").value = data.cap || ""; el("r-prov").value = data.prov || ""; }
+        msg.textContent = Lang.t("acc.pivaOk") + " " + (data.ragione_sociale || "") + (data.citta ? " · " + data.citta : ""); msg.style.color = "var(--basil)";
+      }
+      el("r-piva").addEventListener("input", () => { if (el("r-piva").value.replace(/\D/g, "").length === 11) cercaPiva(); });
+      el("r-piva").addEventListener("blur", cercaPiva);
 
       // ---- recupero password ----
       function showRecovery() { el("guest").hidden = true; el("me").hidden = true; el("recovery").hidden = false; }
