@@ -60,7 +60,7 @@ async function inviaPush(admin: any, titolo: string, testo: string, url: string,
   const { data: subs } = await admin.from("push_subscriptions").select("endpoint, sub");
   let inviate = 0;
   for (const s of subs || []) {
-    try { await webpush.sendNotification(s.sub, JSON.stringify({ title: titolo, body: testo, url, badge, tag: tag || ("carminello-" + Date.now()) })); inviate++; }
+    try { await webpush.sendNotification(s.sub, JSON.stringify({ title: titolo, body: testo, url, badge, tag: tag || ("carminello-" + Date.now()) }), { urgency: "high", TTL: 3600 }); inviate++; }
     catch (e: any) {
       console.error("push", s.endpoint.slice(0, 60), e?.statusCode || e?.message);
       if (e?.statusCode === 404 || e?.statusCode === 410) await admin.from("push_subscriptions").delete().eq("endpoint", s.endpoint);
@@ -104,7 +104,12 @@ Deno.serve(async (req) => {
       const o = record;
       const { data: p } = await admin.from("profiles").select("email,nome,ragione_sociale,tipo").eq("id", o.user_id).maybeSingle();
       const cliente = p?.ragione_sociale || p?.nome || p?.email || "cliente";
-      // al titolare
+      // 1) subito la push sul telefono/Mac del titolare (priorità alta), con il numero degli ordini non ancora visti
+      try {
+        const { count } = await admin.from("orders").select("id", { count: "exact", head: true }).eq("visto", false);
+        await inviaPush(admin, `Nuovo ordine n. ${o.numero}`, `${cliente}: ${o.cartoni} cartoni, ${eur(o.totale)} (${PM[o.metodo_pagamento]})`, "#/ordini", count || 1, "ordine-" + o.numero);
+      } catch (e) { console.error("push ordine", e); }
+      // 2) email al titolare
       await sendMail(ownerEmail, `Nuovo ordine n. ${o.numero} — ${cliente} — ${eur(o.totale)}`,
         layout(`Nuovo ordine n. ${o.numero}`, `
           <p><b>Cliente:</b> ${esc(cliente)} (${o.tipo === "b2b" ? "locale" : o.tipo === "rivenditore" ? "rivenditore" : "privato"}) · ${esc(p?.email)}</p>
@@ -113,12 +118,7 @@ Deno.serve(async (req) => {
           ${o.note ? `<p><b>Note:</b> ${esc(o.note)}</p>` : ""}
           ${righeHtml(o)}
           ${site ? `<p style="margin-top:20px"><a href="${site}/admin.html" style="background:#c8452b;color:#fff;padding:10px 18px;border-radius:999px;text-decoration:none">Apri il pannello</a></p>` : ""}`));
-      // push sul telefono/Mac del titolare, con il numero degli ordini non ancora visti
-      try {
-        const { count } = await admin.from("orders").select("id", { count: "exact", head: true }).eq("visto", false);
-        await inviaPush(admin, `Nuovo ordine n. ${o.numero}`, `${cliente}: ${o.cartoni} cartoni, ${eur(o.totale)} (${PM[o.metodo_pagamento]})`, "#/ordini", count || 1, "ordine-" + o.numero);
-      } catch (e) { console.error("push ordine", e); }
-      // al cliente
+      // 3) email al cliente
       let extra = "";
       if (o.metodo_pagamento === "bonifico") {
         const b = imp.bonifico || {};
