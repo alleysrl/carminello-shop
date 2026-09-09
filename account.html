@@ -190,10 +190,13 @@
 
       // ---- Partita IVA → ragione sociale e indirizzo dall'archivio VIES ----
       let pivaUltima = "";
+      // controllo del codice di una Partita IVA italiana (intercetta gli errori di battitura)
+      function pivaValida(p) { if (!/^\d{11}$/.test(p)) return false; let s = 0; for (let i = 0; i < 11; i++) { let d = +p[i]; if (i % 2) { d *= 2; if (d > 9) d -= 9; } s += d; } return s % 10 === 0; }
       async function cercaPiva() {
         const piva = el("r-piva").value.replace(/\D/g, ""); el("r-piva").value = piva;
         const msg = el("r-piva-msg"); msg.style.color = "";
         if (piva.length !== 11 || piva === pivaUltima || !App.db) return;
+        if (!pivaValida(piva)) { pivaUltima = piva; msg.textContent = Lang.t("acc.pivaBad"); msg.style.color = "var(--terra-d)"; return; }
         pivaUltima = piva; msg.textContent = Lang.t("acc.pivaSearch");
         const { data, error } = await App.db.functions.invoke("piva", { body: { piva } });
         if (error || !data) { msg.textContent = Lang.t("acc.pivaErr"); msg.style.color = "var(--terra-d)"; return; }
