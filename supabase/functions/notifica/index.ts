@@ -53,19 +53,20 @@ function indirizzoHtml(a: any) {
 }
 
 // ---- Notifiche push (telefono/Mac) a tutti i dispositivi registrati dall'amministratore ----
-async function inviaPush(admin: any, titolo: string, testo: string, url: string, badge?: number) {
+async function inviaPush(admin: any, titolo: string, testo: string, url: string, badge?: number, tag?: string) {
   const PUB = Deno.env.get("VAPID_PUBLIC_KEY"), PRIV = Deno.env.get("VAPID_PRIVATE_KEY");
   if (!PUB || !PRIV) { console.log("Push non inviata: mancano le chiavi VAPID"); return { inviate: 0 }; }
   webpush.setVapidDetails(Deno.env.get("VAPID_SUBJECT") || "mailto:info@carminello.eu", PUB, PRIV);
   const { data: subs } = await admin.from("push_subscriptions").select("endpoint, sub");
   let inviate = 0;
   for (const s of subs || []) {
-    try { await webpush.sendNotification(s.sub, JSON.stringify({ title: titolo, body: testo, url, badge })); inviate++; }
+    try { await webpush.sendNotification(s.sub, JSON.stringify({ title: titolo, body: testo, url, badge, tag: tag || ("carminello-" + Date.now()) })); inviate++; }
     catch (e: any) {
       console.error("push", s.endpoint.slice(0, 60), e?.statusCode || e?.message);
       if (e?.statusCode === 404 || e?.statusCode === 410) await admin.from("push_subscriptions").delete().eq("endpoint", s.endpoint);
     }
   }
+  console.log("push inviate", inviate, "su", (subs || []).length, "dispositivi:", titolo);
   return { inviate };
 }
 
@@ -85,7 +86,7 @@ Deno.serve(async (req) => {
       const adm = createClient(Deno.env.get("SUPABASE_URL")!, SERVICE_KEY);
       const { data: prof } = user ? await adm.from("profiles").select("ruolo").eq("id", user.id).maybeSingle() : { data: null };
       if (!prof || prof.ruolo !== "admin") return new Response(JSON.stringify({ error: "Non autorizzato" }), { status: 403, headers: { ...cors, "Content-Type": "application/json" } });
-      const r = await inviaPush(adm, "Carminello Dashboard", "Le notifiche push funzionano su questo dispositivo.", "#/cruscotto", 1);
+      const r = await inviaPush(adm, "Carminello Dashboard", "Le notifiche push funzionano su questo dispositivo.", "#/cruscotto", 1, "test");
       return new Response(JSON.stringify({ ok: true, ...r }), { headers: { ...cors, "Content-Type": "application/json" } });
     }
 
@@ -115,7 +116,7 @@ Deno.serve(async (req) => {
       // push sul telefono/Mac del titolare, con il numero degli ordini non ancora visti
       try {
         const { count } = await admin.from("orders").select("id", { count: "exact", head: true }).eq("visto", false);
-        await inviaPush(admin, `Nuovo ordine n. ${o.numero}`, `${cliente}: ${o.cartoni} cartoni, ${eur(o.totale)} (${PM[o.metodo_pagamento]})`, "#/ordini", count || 1);
+        await inviaPush(admin, `Nuovo ordine n. ${o.numero}`, `${cliente}: ${o.cartoni} cartoni, ${eur(o.totale)} (${PM[o.metodo_pagamento]})`, "#/ordini", count || 1, "ordine-" + o.numero);
       } catch (e) { console.error("push ordine", e); }
       // al cliente
       let extra = "";
