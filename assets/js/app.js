@@ -156,8 +156,19 @@ const App = (function () {
     Lang.apply(f);
   }
 
+  function renderPendingBanner() {
+    let b = document.getElementById("pending-banner");
+    const show = isB2B() && !b2bAttivo();
+    if (!show) { if (b) b.remove(); return; }
+    if (!b) { b = document.createElement("div"); b.id = "pending-banner"; const h = document.getElementById("site-header"); h && h.insertAdjacentElement("afterend", b); }
+    b.innerHTML = `<span>${Lang.t("banner.pending")}</span> <a href="https://wa.me/${CONFIG.AZIENDA.whatsapp}" target="_blank" rel="noopener">${Lang.t("banner.wa")}</a>`;
+  }
+  onAuth(renderPendingBanner);
+  document.addEventListener("lang:change", renderPendingBanner);
+
   function init() {
     renderHeader(); renderFooter(); Lang.apply();
+    ready.then(renderPendingBanner);
     document.addEventListener("cart:change", renderHeader);
     document.addEventListener("lang:change", () => { renderHeader(); renderFooter(); });
     if (!db) {

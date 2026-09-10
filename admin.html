@@ -42,7 +42,7 @@
 
       <!-- CLIENTI -->
       <section id="tab-clienti" hidden>
-        <div class="filters" id="cli-filters"><button class="on" data-f="b2b_pending">Da attivare</button><button data-f="b2b">Locali</button><button data-f="rivenditore">Rivenditori</button><button data-f="b2c">Privati</button><button data-f="tutti">Tutti</button></div>
+        <div class="filters" id="cli-filters"><button class="on" data-f="b2b_pending">Da attivare</button><button data-f="b2b">Esercenti</button><button data-f="rivenditore">Rivenditori</button><button data-f="b2c">Privati</button><button data-f="tutti">Tutti</button></div>
         <p class="muted small">Per attivare un locale: scrivi il prezzo del cartone da 20 e premi <b>Salva e attiva</b>. Da quel momento il cliente vede il suo prezzo e ordina da solo.</p>
         <div class="table-wrap"><table class="data"><thead><tr><th>Cliente</th><th>Contatti</th><th>Dati fiscali</th><th>Prezzo riservato</th><th>Stato</th><th></th></tr></thead><tbody id="cli-body"></tbody></table></div>
       </section>
@@ -103,7 +103,7 @@
       let ordini = [], clienti = [], prodotti = [], ordF = "attivi", cliF = "b2b_pending";
       const PM = { carta: "Carta", bonifico: "Bonifico", contrassegno: "Contrassegno" };
       const ST = { da_pagare: "Da pagare", da_spedire: "Da spedire", spedito: "Spedito", annullato: "Annullato" };
-      const TIPO = { b2c: "Privato", b2b: "Locale", rivenditore: "Rivenditore" };
+      const TIPO = { b2c: "Privato", b2b: "Esercente", rivenditore: "Rivenditore" };
       const money = App.money, esc = App.esc;
 
       // tabs

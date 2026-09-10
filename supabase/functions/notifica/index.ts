@@ -70,6 +70,22 @@ async function inviaPush(admin: any, titolo: string, testo: string, url: string,
   return { inviate };
 }
 
+
+// Email al cliente appena registrato (o passato) come esercente/rivenditore: cosa succede ora
+async function emailBenvenutoAzienda(c: any, site: string) {
+  if (!c?.email) return;
+  const cosa = c.tipo === "rivenditore" ? "rivenditore" : "esercente";
+  await sendMail(c.email, `Carminello — registrazione ricevuta: ecco cosa succede ora`,
+    layout("Registrazione ricevuta!", `
+      <p>Ciao ${esc(c.nome || "")}, ti sei registrato come <b>${cosa}</b> (${esc(c.ragione_sociale || "")}). Ecco i prossimi passi:</p>
+      <ol style="line-height:1.7">
+        <li><b>Conferma la tua email</b>, se non l'hai già fatto, con il link che ti abbiamo inviato.</li>
+        <li><b>Ti contattiamo noi</b> per concordare il prezzo riservato e attivare l'account. Di solito entro un giorno lavorativo.</li>
+        <li><b>Da quel momento ordini da solo</b>, quando vuoi, anche con pagamento alla consegna.</li>
+      </ol>
+      <p>Fino all'attivazione il sito ti mostra "Account in attesa di attivazione": è normale. Hai fretta? Scrivici su WhatsApp al +39 379 3504521.</p>`));
+}
+
 const PM: Record<string, string> = { carta: "Carta (SumUp)", bonifico: "Bonifico bancario", contrassegno: "Contrassegno" };
 const ST: Record<string, string> = { da_pagare: "In attesa di pagamento", da_spedire: "In preparazione", spedito: "Spedito", annullato: "Annullato" };
 
@@ -112,7 +128,7 @@ Deno.serve(async (req) => {
       // 2) email al titolare
       await sendMail(ownerEmail, `Nuovo ordine n. ${o.numero} — ${cliente} — ${eur(o.totale)}`,
         layout(`Nuovo ordine n. ${o.numero}`, `
-          <p><b>Cliente:</b> ${esc(cliente)} (${o.tipo === "b2b" ? "locale" : o.tipo === "rivenditore" ? "rivenditore" : "privato"}) · ${esc(p?.email)}</p>
+          <p><b>Cliente:</b> ${esc(cliente)} (${o.tipo === "b2b" ? "esercente" : o.tipo === "rivenditore" ? "rivenditore" : "privato"}) · ${esc(p?.email)}</p>
           <p><b>Consegna:</b> ${indirizzoHtml(o.indirizzo)}</p>
           <p><b>Pagamento:</b> ${PM[o.metodo_pagamento]} · <b>Stato:</b> ${ST[o.stato]}</p>
           ${o.note ? `<p><b>Note:</b> ${esc(o.note)}</p>` : ""}
@@ -152,9 +168,23 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ---- PRIVATO CHE CHIEDE DI DIVENTARE LOCALE/RIVENDITORE → avviso al titolare ----
+    // ---- ACCOUNT AZIENDALE ATTIVATO → email al cliente con il suo prezzo ----
+    if (table === "profiles" && type === "UPDATE" && record.approvato === true && old_record?.approvato !== true && (record.tipo === "b2b" || record.tipo === "rivenditore") && record.email) {
+      const c = record;
+      const { data: prezzi } = await admin.from("prezzi_cliente").select("prezzo, products(nome_it, pezzi)").eq("user_id", c.id);
+      const righe = (prezzi || []).map((x: any) => `<li><b>${esc(x.products?.nome_it || "Cartone")}</b>: ${eur(x.prezzo)} a cartone${x.products?.pezzi ? " (" + eur(Number(x.prezzo) / x.products.pezzi) + " a base)" : ""}</li>`).join("");
+      await sendMail(c.email, `Carminello — il tuo account è attivo, puoi ordinare`,
+        layout("Il tuo account è attivo!", `
+          <p>Ciao ${esc(c.nome || "")}, abbiamo attivato l'account di <b>${esc(c.ragione_sociale || "")}</b>. Il tuo prezzo riservato:</p>
+          <ul style="line-height:1.7">${righe || "<li>come concordato</li>"}</ul>
+          <p>Prezzi IVA inclusa. Puoi pagare con carta, bonifico o contrassegno. Spedizione gratuita da 10 cartoni.</p>
+          ${site ? `<p><a href="${site}/shop.html" style="background:#c8452b;color:#fff;padding:10px 18px;border-radius:999px;text-decoration:none">Fai il tuo primo ordine</a></p>` : ""}`));
+    }
+
+    // ---- PRIVATO CHE CHIEDE DI DIVENTARE ESERCENTE/RIVENDITORE → avviso al titolare ----
     if (table === "profiles" && type === "UPDATE" && (record.tipo === "b2b" || record.tipo === "rivenditore") && old_record?.tipo === "b2c") {
-      const c = record; const cosa = c.tipo === "rivenditore" ? "rivenditore" : "locale";
+      const c = record; const cosa = c.tipo === "rivenditore" ? "rivenditore" : "esercente";
+      try { await emailBenvenutoAzienda(c, site); } catch (e) { console.error("email benvenuto", e); }
       try { await inviaPush(admin, `Richiesta: vuole diventare ${cosa}`, `${c.ragione_sociale || c.email} · ${c.telefono || ""}`, "#/clienti/attivare"); } catch (e) { console.error("push upgrade", e); }
       await sendMail(ownerEmail, `${c.ragione_sociale || c.email} chiede di diventare ${cosa}`,
         layout(`Richiesta di passaggio a ${cosa}`, `
@@ -167,9 +197,10 @@ Deno.serve(async (req) => {
     // ---- NUOVO LOCALE REGISTRATO → avviso al titolare ----
     if (table === "profiles" && type === "INSERT" && (record.tipo === "b2b" || record.tipo === "rivenditore")) {
       const c = record;
-      try { await inviaPush(admin, c.tipo === "rivenditore" ? "Nuovo rivenditore da attivare" : "Nuovo locale da attivare", `${c.ragione_sociale || c.email} · ${c.telefono || ""}`, "#/clienti/attivare"); } catch (e) { console.error("push registrazione", e); }
-      await sendMail(ownerEmail, `Nuovo ${c.tipo === "rivenditore" ? "rivenditore" : "locale"} registrato: ${c.ragione_sociale || c.email}`,
-        layout(c.tipo === "rivenditore" ? "Nuovo rivenditore da attivare" : "Nuovo locale da attivare", `
+      try { await emailBenvenutoAzienda(c, site); } catch (e) { console.error("email benvenuto", e); }
+      try { await inviaPush(admin, c.tipo === "rivenditore" ? "Nuovo rivenditore da attivare" : "Nuovo esercente da attivare", `${c.ragione_sociale || c.email} · ${c.telefono || ""}`, "#/clienti/attivare"); } catch (e) { console.error("push registrazione", e); }
+      await sendMail(ownerEmail, `Nuovo ${c.tipo === "rivenditore" ? "rivenditore" : "esercente"} registrato: ${c.ragione_sociale || c.email}`,
+        layout(c.tipo === "rivenditore" ? "Nuovo rivenditore da attivare" : "Nuovo esercente da attivare", `
           <p><b>${esc(c.ragione_sociale)}</b><br>${esc(c.nome)} ${esc(c.cognome)}<br>${esc(c.email)} · ${esc(c.telefono)}<br>P.IVA ${esc(c.piva)}${c.sdi ? " · SDI " + esc(c.sdi) : ""}${c.pec ? " · PEC " + esc(c.pec) : ""}</p>
           <p>Contattalo, concorda il prezzo e attivalo dal pannello: da quel momento ordina da solo.</p>
           ${site ? `<p><a href="${site}/admin.html" style="background:#c8452b;color:#fff;padding:10px 18px;border-radius:999px;text-decoration:none">Apri il pannello</a></p>` : ""}`));

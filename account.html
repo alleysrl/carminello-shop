@@ -31,6 +31,7 @@
         <div class="field"><label data-i18n="acc.email">Email</label><input id="l-email" type="email" required autocomplete="email"></div>
         <div class="field"><label data-i18n="acc.password">Password</label><input id="l-pass" type="password" required autocomplete="current-password"></div>
         <div class="err" id="l-err" hidden></div>
+        <p id="l-resend-wrap" hidden><button type="button" class="btn sm ghost" id="l-resend" data-i18n="acc.resend">Rimanda l'email di conferma</button></p>
         <button class="btn lg block" type="submit" data-i18n="acc.loginBtn">Entra</button>
         <p class="center" style="margin:.9rem 0 0"><a href="#" id="forgot" class="small" data-i18n="acc.forgot">Password dimenticata?</a></p>
       </form>
@@ -39,7 +40,7 @@
         <label data-i18n="acc.who">Chi sei?</label>
         <div class="choice" style="margin-bottom:1.2rem">
           <label><input type="radio" name="tipo" value="b2c" checked><span><b data-i18n="acc.b2c">Privato</b><small data-i18n="acc.b2cD">Ordino per casa</small></span></label>
-          <label><input type="radio" name="tipo" value="b2b"><span><b data-i18n="acc.b2b">Locale / azienda</b><small data-i18n="acc.b2bD">Pizzeria, ristorante, bar, negozio</small></span></label>
+          <label><input type="radio" name="tipo" value="b2b"><span><b data-i18n="acc.b2b">Esercente</b><small data-i18n="acc.b2bD">Pizzeria, ristorante, bar, negozio, gastronomia</small></span></label>
           <label><input type="radio" name="tipo" value="rivenditore"><span><b data-i18n="acc.riv">Rivenditore / grossista</b><small data-i18n="acc.rivD">Distributori, grossisti, rappresentanti</small></span></label>
         </div>
         <div id="reg-b2b" hidden>
@@ -77,6 +78,19 @@
       </form>
     </div>
 
+    <!-- REGISTRAZIONE RICEVUTA -->
+    <div id="reg-done" class="card" hidden>
+      <h2 data-i18n="acc.done.t">Registrazione ricevuta!</h2>
+      <p><span data-i18n="acc.done.mail">Abbiamo inviato un'email a</span> <b id="done-email"></b>.</p>
+      <ol class="done-steps">
+        <li data-i18n="acc.done.s1">Conferma la tua email cliccando il link che ti abbiamo inviato. Controlla anche la posta indesiderata.</li>
+        <li id="done-s2" data-i18n="acc.done.s2">Ti contattiamo per concordare il prezzo riservato e attivare l'account.</li>
+        <li id="done-s3" data-i18n="acc.done.s3">Da quel momento ordini da solo, quando vuoi, anche in contrassegno.</li>
+        <li id="done-s1p" data-i18n="acc.done.s1p" hidden>Dopo la conferma potrai accedere e ordinare subito.</li>
+      </ol>
+      <p><a href="#" id="done-resend" class="small" data-i18n="acc.done.resend">Non hai ricevuto l'email? Inviala di nuovo</a></p>
+    </div>
+
     <!-- NUOVA PASSWORD (dal link dell'email) -->
     <div id="recovery" class="card" hidden>
       <h3 data-i18n="acc.newPass">Scegli la nuova password</h3>
@@ -98,7 +112,14 @@
           <button class="btn sm ghost" id="logout" data-i18n="acc.logout">Esci</button>
         </div>
         <p class="muted small" id="me-email" style="margin:.3rem 0 0"></p>
-        <div id="me-b2b" class="notice" style="margin-top:1rem" hidden><b data-i18n="acc.b2bStatus">Stato account locale</b>: <span id="me-b2b-txt"></span></div>
+        <div id="me-b2b" class="notice" style="margin-top:1rem" hidden>
+          <b data-i18n="acc.steps.t">A che punto sei</b>
+          <ul class="steps-list">
+            <li data-i18n="acc.steps.1">Registrato</li>
+            <li data-i18n="acc.steps.2">Email confermata</li>
+            <li id="me-step3"><span data-i18n="acc.steps.3">Attivazione da parte di Carminello</span>: <b id="me-b2b-txt"></b></li>
+          </ul>
+        </div>
       </div>
 
       <div class="card">
@@ -107,11 +128,11 @@
       </div>
 
       <div class="card" id="up-card" hidden>
-        <h3 data-i18n="acc.up.t">Hai un locale o sei un rivenditore?</h3>
+        <h3 data-i18n="acc.up.t">Sei un esercente o un rivenditore?</h3>
         <p class="muted" data-i18n="acc.up.p">Passa all'account aziendale: inserisci la Partita IVA, ti contattiamo per concordare il prezzo e da quel momento ordini il formato professionale, anche in contrassegno.</p>
         <form id="up-form" novalidate>
           <div class="choice" style="margin-bottom:1rem">
-            <label><input type="radio" name="up-tipo" value="b2b" checked><span><b data-i18n="acc.b2b">Locale / azienda</b><small data-i18n="acc.b2bD">Pizzeria, ristorante, bar, negozio</small></span></label>
+            <label><input type="radio" name="up-tipo" value="b2b" checked><span><b data-i18n="acc.b2b">Esercente</b><small data-i18n="acc.b2bD">Pizzeria, ristorante, bar, negozio, gastronomia</small></span></label>
             <label><input type="radio" name="up-tipo" value="rivenditore"><span><b data-i18n="acc.riv">Rivenditore / grossista</b><small data-i18n="acc.rivD">Distributori, grossisti, rappresentanti</small></span></label>
           </div>
           <div class="field"><label data-i18n="acc.piva">Partita IVA</label><input id="u-piva" inputmode="numeric" maxlength="11" autocomplete="off"><div class="small muted" id="u-piva-msg" style="margin-top:.35rem" data-i18n="acc.pivaHint">Inserisci le 11 cifre: ragione sociale e indirizzo si compilano da soli.</div></div>
@@ -186,9 +207,17 @@
       el("login").addEventListener("submit", async e => {
         e.preventDefault(); errBox("l-err", "");
         const { error } = await App.db.auth.signInWithPassword({ email: el("l-email").value.trim(), password: el("l-pass").value });
-        if (error) { errBox("l-err", Lang.t("acc.errLogin")); return; }
+        el("l-resend-wrap").hidden = true;
+        if (error) { const nc = /not confirmed/i.test(error.message || ""); errBox("l-err", nc ? Lang.t("acc.notConfirmed") : Lang.t("acc.errLogin")); if (nc) el("l-resend-wrap").hidden = false; return; }
         if (next) gotoNext();
       });
+      async function rimandaConferma(email) {
+        if (!email) { errBox("l-err", Lang.t("co.errFields")); return; }
+        const { error } = await App.db.auth.resend({ type: "signup", email, options: { emailRedirectTo: location.origin + location.pathname.replace(/[^/]*$/, "") + "account.html" } });
+        if (error) errBox("l-err", error.message); else App.toast(Lang.t("acc.done.resent"), "ok");
+      }
+      el("l-resend").addEventListener("click", () => rimandaConferma(el("l-email").value.trim()));
+      el("done-resend").addEventListener("click", e => { e.preventDefault(); rimandaConferma(el("done-email").textContent.trim()); });
       el("forgot").addEventListener("click", async e => {
         e.preventDefault(); const email = el("l-email").value.trim();
         if (!email) { errBox("l-err", Lang.t("co.errFields")); return; }
@@ -211,7 +240,11 @@
         const { data, error } = await App.db.auth.signUp({ email: v("r-email"), password: el("r-pass").value, options: { data: meta, emailRedirectTo: location.origin + location.pathname.replace(/[^/]*$/, "") + "account.html" } });
         if (error) { errBox("r-err", /already|registered|exists/i.test(error.message) ? Lang.t("acc.errExists") : error.message); return; }
         if (data.session) { if (next) gotoNext(); }
-        else { showMsg(Lang.t("acc.checkMail")); el("reg").reset(); showTab(false); }
+        else {
+          el("guest").hidden = true; el("reg-done").hidden = false; el("done-email").textContent = v("r-email");
+          const pro = tipo !== "b2c"; el("done-s2").hidden = !pro; el("done-s3").hidden = !pro; el("done-s1p").hidden = pro;
+          el("reg").reset(); window.scrollTo(0, 0);
+        }
       });
 
       // ---- Partita IVA → ragione sociale e indirizzo dall'archivio VIES ----
@@ -283,7 +316,7 @@
         el("up-card").hidden = p.tipo !== "b2c";
         el("p-b2b").hidden = p.tipo === "b2c";
         el("me-b2b").hidden = p.tipo === "b2c";
-        if (p.tipo !== "b2c") { el("me-b2b").className = "notice " + (p.approvato ? "ok" : "warn"); el("me-b2b-txt").textContent = p.approvato ? Lang.t("acc.b2bOk") : Lang.t("acc.b2bPending"); }
+        if (p.tipo !== "b2c") { el("me-b2b").className = "notice " + (p.approvato ? "ok" : "warn"); el("me-b2b-txt").textContent = p.approvato ? Lang.t("acc.steps.3ok") : Lang.t("acc.steps.3wait"); el("me-step3").className = p.approvato ? "" : "wait"; }
         el("p-company").value = p.ragione_sociale || ""; el("p-piva").value = p.piva || ""; el("p-sdi").value = p.sdi || ""; el("p-pec").value = p.pec || "";
         el("p-nome").value = p.nome || ""; el("p-cognome").value = p.cognome || ""; el("p-tel").value = p.telefono || "";
         el("p-via").value = a.via || ""; el("p-citta").value = a.citta || ""; el("p-cap").value = a.cap || ""; el("p-prov").value = a.prov || "";
@@ -300,6 +333,8 @@
       function render() {
         if (!App.configured) return;
         if (!el("recovery").hidden) return;
+        if (!el("reg-done").hidden && !App.user) return;
+        el("reg-done").hidden = true;
         if (App.user) { el("guest").hidden = true; el("me").hidden = false; fillProfile(); loadOrders(); }
         else { el("me").hidden = true; el("guest").hidden = false; }
       }
