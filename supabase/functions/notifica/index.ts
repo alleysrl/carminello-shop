@@ -53,11 +53,14 @@ function indirizzoHtml(a: any) {
 }
 
 // ---- Notifiche push (telefono/Mac) a tutti i dispositivi registrati dall'amministratore ----
-async function inviaPush(admin: any, titolo: string, testo: string, url: string, badge?: number, tag?: string) {
+async function inviaPush(admin: any, titolo: string, testo: string, url: string, badge?: number, tag?: string, destinatari?: string[]) {
   const PUB = Deno.env.get("VAPID_PUBLIC_KEY"), PRIV = Deno.env.get("VAPID_PRIVATE_KEY");
   if (!PUB || !PRIV) { console.log("Push non inviata: mancano le chiavi VAPID"); return { inviate: 0 }; }
   webpush.setVapidDetails(Deno.env.get("VAPID_SUBJECT") || "mailto:info@carminello.eu", PUB, PRIV);
-  const { data: subs } = await admin.from("push_subscriptions").select("endpoint, sub");
+  let ids = destinatari;
+  if (!ids) { const { data: adm } = await admin.from("profiles").select("id").eq("ruolo", "admin"); ids = (adm || []).map((x: any) => x.id); }
+  if (!ids.length) return { inviate: 0 };
+  const { data: subs } = await admin.from("push_subscriptions").select("endpoint, sub").in("user_id", ids);
   let inviate = 0;
   for (const s of subs || []) {
     try { await webpush.sendNotification(s.sub, JSON.stringify({ title: titolo, body: testo, url, badge, tag: tag || ("carminello-" + Date.now()) }), { urgency: "high", TTL: 3600 }); inviate++; }
@@ -79,11 +82,16 @@ async function emailBenvenutoAzienda(c: any, site: string) {
     layout("Registrazione ricevuta!", `
       <p>Ciao ${esc(c.nome || "")}, ti sei registrato come <b>${cosa}</b> (${esc(c.ragione_sociale || "")}). Ecco i prossimi passi:</p>
       <ol style="line-height:1.7">
-        <li><b>Conferma la tua email</b>, se non l'hai già fatto, con il link che ti abbiamo inviato.</li>
+        ${c.origine === "invito" ? `<li><b>Scegli la tua password</b> dal link nell'email "Sei stato invitato", se non l'hai già fatto.</li>` : `<li><b>Conferma la tua email</b>, se non l'hai già fatto, con il link che ti abbiamo inviato.</li>`}
         <li><b>Ti contattiamo noi</b> per concordare il prezzo riservato e attivare l'account. Di solito entro un giorno lavorativo.</li>
         <li><b>Da quel momento ordini da solo</b>, quando vuoi, anche con pagamento alla consegna.</li>
       </ol>
       <p>Fino all'attivazione il sito ti mostra "Account in attesa di attivazione": è normale. Hai fretta? Scrivici su WhatsApp al +39 379 3504521.</p>`));
+}
+
+async function nomeAgente(admin: any, id: string) {
+  const { data } = await admin.from("profiles").select("nome,cognome,codice_agente").eq("id", id).maybeSingle();
+  return data ? `${data.nome || ""} ${data.cognome || ""}`.trim() + (data.codice_agente ? ` (${data.codice_agente})` : "") : "agente";
 }
 
 const PM: Record<string, string> = { carta: "Carta (SumUp)", bonifico: "Bonifico bancario", contrassegno: "Contrassegno" };
@@ -118,8 +126,12 @@ Deno.serve(async (req) => {
     // ---- NUOVO ORDINE ----
     if (table === "orders" && type === "INSERT") {
       const o = record;
-      const { data: p } = await admin.from("profiles").select("email,nome,ragione_sociale,tipo").eq("id", o.user_id).maybeSingle();
+      const { data: p } = await admin.from("profiles").select("email,nome,ragione_sociale,tipo,agente_id").eq("id", o.user_id).maybeSingle();
       const cliente = p?.ragione_sociale || p?.nome || p?.email || "cliente";
+      if (o.agente_id) {
+        try { await inviaPush(admin, `Ordine del tuo cliente ${cliente}`, `${o.cartoni} cartoni, ${eur(o.subtotale)} di merce · provvigione ${eur(o.provvigione)}`, "#/clienti", undefined, "agente-ordine-" + o.numero, [o.agente_id]); }
+        catch (e) { console.error("push agente", e); }
+      }
       // 1) subito la push sul telefono/Mac del titolare (priorità alta), con il numero degli ordini non ancora visti
       try {
         const { count } = await admin.from("orders").select("id", { count: "exact", head: true }).eq("visto", false);
@@ -131,6 +143,7 @@ Deno.serve(async (req) => {
           <p><b>Cliente:</b> ${esc(cliente)} (${o.tipo === "b2b" ? "esercente" : o.tipo === "rivenditore" ? "rivenditore" : "privato"}) · ${esc(p?.email)}</p>
           <p><b>Consegna:</b> ${indirizzoHtml(o.indirizzo)}</p>
           <p><b>Pagamento:</b> ${PM[o.metodo_pagamento]} · <b>Stato:</b> ${ST[o.stato]}</p>
+          ${o.agente_id ? `<p><b>Agente:</b> ${esc(await nomeAgente(admin, o.agente_id))} · provvigione ${o.provvigione_pct}% = ${eur(o.provvigione)}</p>` : ""}
           ${o.note ? `<p><b>Note:</b> ${esc(o.note)}</p>` : ""}
           ${righeHtml(o)}
           ${site ? `<p style="margin-top:20px"><a href="${site}/admin.html" style="background:#c8452b;color:#fff;padding:10px 18px;border-radius:999px;text-decoration:none">Apri il pannello</a></p>` : ""}`));
@@ -181,6 +194,42 @@ Deno.serve(async (req) => {
           ${site ? `<p><a href="${site}/shop.html" style="background:#c8452b;color:#fff;padding:10px 18px;border-radius:999px;text-decoration:none">Fai il tuo primo ordine</a></p>` : ""}`));
     }
 
+    // ---- AGENTI: nuovo agente registrato → titolare; agente approvato → email all'agente ----
+    if (table === "profiles" && record.ruolo === "agente") {
+      const c = record;
+      const chi = `${c.nome || ""} ${c.cognome || ""}`.trim() || c.email;
+      if (type === "INSERT") {
+        try { await inviaPush(admin, "Nuovo agente da approvare", `${chi} · ${c.telefono || ""}`, "#/agenti"); } catch (e) { console.error("push agente", e); }
+        await sendMail(ownerEmail, `Nuovo agente registrato: ${chi}`,
+          layout("Nuovo agente da approvare", `
+            <p><b>${esc(chi)}</b><br>${esc(c.email)} · ${esc(c.telefono)}${c.piva ? "<br>P.IVA " + esc(c.piva) : ""}${c.ragione_sociale ? "<br>" + esc(c.ragione_sociale) : ""}</p>
+            <p>Contattalo, concorda la provvigione e approvalo dalla dashboard: da quel momento può registrare clienti e vedere i loro ordini.</p>
+            <p><a href="https://alleysrl.github.io/carminello-dashboard/#/agenti" style="background:#c8452b;color:#fff;padding:10px 18px;border-radius:999px;text-decoration:none">Apri la dashboard</a></p>`));
+        if (c.email) await sendMail(c.email, "Carminello — richiesta ricevuta: ecco cosa succede ora",
+          layout("Richiesta ricevuta!", `
+            <p>Ciao ${esc(c.nome || "")}, grazie per esserti proposto come agente Carminello. I prossimi passi:</p>
+            <ol style="line-height:1.7">
+              <li><b>Conferma la tua email</b>, se non l'hai già fatto, con il link che ti abbiamo inviato.</li>
+              <li><b>Ti contattiamo noi</b> per concordare la provvigione e attivare il tuo account.</li>
+              <li><b>Da quel momento</b> registri i tuoi clienti dall'app e vedi ordini, statistiche e provvigioni.</li>
+            </ol>
+            <p>Hai fretta? Scrivici su WhatsApp al +39 379 3504521.</p>`));
+      }
+      if (type === "UPDATE" && c.approvato === true && old_record?.approvato !== true && c.email) {
+        await sendMail(c.email, "Carminello — il tuo account agente è attivo",
+          layout("Sei operativo!", `
+            <p>Ciao ${esc(c.nome || "")}, abbiamo attivato il tuo account agente.</p>
+            <ul style="line-height:1.7">
+              <li>Provvigione concordata: <b>${c.provvigione_pct}%</b> sul valore della merce degli ordini pagati dei tuoi clienti.</li>
+              <li>Il tuo codice: <b>${esc(c.codice_agente || "")}</b></li>
+              <li>Link di registrazione per i tuoi clienti: <a href="${site}/account.html?agente=${esc(c.codice_agente || "")}">${site}/account.html?agente=${esc(c.codice_agente || "")}</a></li>
+            </ul>
+            <p>Dall'app puoi anche registrare un cliente sul posto: gli arriva un'email per scegliere la password.</p>
+            <p><a href="https://alleysrl.github.io/carminello-agenti/" style="background:#c8452b;color:#fff;padding:10px 18px;border-radius:999px;text-decoration:none">Apri l'app agenti</a></p>`));
+      }
+      return new Response(JSON.stringify({ ok: true }), { headers: { "Content-Type": "application/json" } });
+    }
+
     // ---- PRIVATO CHE CHIEDE DI DIVENTARE ESERCENTE/RIVENDITORE → avviso al titolare ----
     if (table === "profiles" && type === "UPDATE" && (record.tipo === "b2b" || record.tipo === "rivenditore") && old_record?.tipo === "b2c") {
       const c = record; const cosa = c.tipo === "rivenditore" ? "rivenditore" : "esercente";
@@ -197,11 +246,13 @@ Deno.serve(async (req) => {
     // ---- NUOVO LOCALE REGISTRATO → avviso al titolare ----
     if (table === "profiles" && type === "INSERT" && (record.tipo === "b2b" || record.tipo === "rivenditore")) {
       const c = record;
+      const portato = c.agente_id ? ` · portato da ${await nomeAgente(admin, c.agente_id)}` : "";
       try { await emailBenvenutoAzienda(c, site); } catch (e) { console.error("email benvenuto", e); }
-      try { await inviaPush(admin, c.tipo === "rivenditore" ? "Nuovo rivenditore da attivare" : "Nuovo esercente da attivare", `${c.ragione_sociale || c.email} · ${c.telefono || ""}`, "#/clienti/attivare"); } catch (e) { console.error("push registrazione", e); }
+      try { await inviaPush(admin, c.tipo === "rivenditore" ? "Nuovo rivenditore da attivare" : "Nuovo esercente da attivare", `${c.ragione_sociale || c.email} · ${c.telefono || ""}${portato}`, "#/clienti/attivare"); } catch (e) { console.error("push registrazione", e); }
       await sendMail(ownerEmail, `Nuovo ${c.tipo === "rivenditore" ? "rivenditore" : "esercente"} registrato: ${c.ragione_sociale || c.email}`,
         layout(c.tipo === "rivenditore" ? "Nuovo rivenditore da attivare" : "Nuovo esercente da attivare", `
           <p><b>${esc(c.ragione_sociale)}</b><br>${esc(c.nome)} ${esc(c.cognome)}<br>${esc(c.email)} · ${esc(c.telefono)}<br>P.IVA ${esc(c.piva)}${c.sdi ? " · SDI " + esc(c.sdi) : ""}${c.pec ? " · PEC " + esc(c.pec) : ""}</p>
+          ${portato ? `<p><b>Cliente ${esc(portato.slice(3))}</b></p>` : ""}
           <p>Contattalo, concorda il prezzo e attivalo dal pannello: da quel momento ordina da solo.</p>
           ${site ? `<p><a href="${site}/admin.html" style="background:#c8452b;color:#fff;padding:10px 18px;border-radius:999px;text-decoration:none">Apri il pannello</a></p>` : ""}`));
     }

@@ -167,6 +167,7 @@ const App = (function () {
   document.addEventListener("lang:change", renderPendingBanner);
 
   function init() {
+    try { const ca = qs("agente"); if (ca) localStorage.setItem("carminello-agente", ca.toUpperCase().replace(/[^A-Z0-9]/g, "")); } catch (_) {}
     renderHeader(); renderFooter(); Lang.apply();
     ready.then(renderPendingBanner);
     document.addEventListener("cart:change", renderHeader);

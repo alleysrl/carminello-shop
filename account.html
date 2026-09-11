@@ -37,6 +37,7 @@
       </form>
 
       <form id="reg" hidden novalidate>
+        <div id="reg-agente" class="notice ok" style="margin-bottom:1rem" hidden><b data-i18n="acc.agente.t">Il tuo rappresentante</b>: <span id="reg-agente-nome"></span><br><small data-i18n="acc.agente.p">Registrati come esercente o rivenditore: il tuo rappresentante seguirà i tuoi ordini.</small></div>
         <label data-i18n="acc.who">Chi sei?</label>
         <div class="choice" style="margin-bottom:1.2rem">
           <label><input type="radio" name="tipo" value="b2c" checked><span><b data-i18n="acc.b2c">Privato</b><small data-i18n="acc.b2cD">Ordino per casa</small></span></label>
@@ -93,7 +94,8 @@
 
     <!-- NUOVA PASSWORD (dal link dell'email) -->
     <div id="recovery" class="card" hidden>
-      <h3 data-i18n="acc.newPass">Scegli la nuova password</h3>
+      <h3 id="rec-title" data-i18n="acc.newPass">Scegli la nuova password</h3>
+      <p class="muted" id="rec-invite" data-i18n="acc.invitePass" hidden>Il tuo rappresentante ti ha registrato su Carminello. Scegli una password per entrare: la userai insieme alla tua email.</p>
       <form id="rec-form" novalidate>
         <div class="row">
           <div class="field"><label data-i18n="acc.password">Password</label><input id="n-pass" type="password" minlength="8" autocomplete="new-password"></div>
@@ -112,6 +114,7 @@
           <button class="btn sm ghost" id="logout" data-i18n="acc.logout">Esci</button>
         </div>
         <p class="muted small" id="me-email" style="margin:.3rem 0 0"></p>
+        <p class="small" id="me-agente" style="margin:.5rem 0 0" hidden><b data-i18n="acc.agente.t">Il tuo rappresentante</b>: <span id="me-agente-txt"></span></p>
         <div id="me-b2b" class="notice" style="margin-top:1rem" hidden>
           <b data-i18n="acc.steps.t">A che punto sei</b>
           <ul class="steps-list">
@@ -235,6 +238,7 @@
         if (el("r-pass").value !== el("r-pass2").value) { errBox("r-err", Lang.t("acc.errPass")); return; }
         if (!el("r-priv").checked) { errBox("r-err", Lang.t("co.errTerms")); return; }
         const meta = { tipo, nome: v("r-nome"), cognome: v("r-cognome"), telefono: v("r-tel"), lingua: Lang.get() };
+        if (tipo !== "b2c" && codiceAgente) { meta.codice_agente = codiceAgente; meta.origine = "link"; }
         if (tipo !== "b2c" && v("r-via")) meta.indirizzo = { via: v("r-via"), citta: v("r-citta"), cap: v("r-cap"), prov: v("r-prov").toUpperCase() };
         if (tipo !== "b2c") Object.assign(meta, { ragione_sociale: v("r-company"), piva: v("r-piva"), sdi: v("r-sdi").toUpperCase(), pec: v("r-pec") });
         const { data, error } = await App.db.auth.signUp({ email: v("r-email"), password: el("r-pass").value, options: { data: meta, emailRedirectTo: location.origin + location.pathname.replace(/[^/]*$/, "") + "account.html" } });
@@ -244,6 +248,7 @@
           el("guest").hidden = true; el("reg-done").hidden = false; el("done-email").textContent = v("r-email");
           const pro = tipo !== "b2c"; el("done-s2").hidden = !pro; el("done-s3").hidden = !pro; el("done-s1p").hidden = pro;
           el("reg").reset(); window.scrollTo(0, 0);
+          try { localStorage.removeItem("carminello-agente"); } catch (_) {}
         }
       });
 
@@ -286,6 +291,19 @@
       function showRecovery() { el("guest").hidden = true; el("me").hidden = true; el("recovery").hidden = false; }
       document.addEventListener("auth:recovery", showRecovery);
       if (/type=recovery/.test(location.hash)) showRecovery();
+      if (/type=(invite|magiclink|signup)/.test(location.hash) && /access_token=/.test(location.hash)) { el("rec-invite").hidden = false; el("rec-title").setAttribute("data-i18n", "acc.invitePassT"); Lang.apply(); showRecovery(); }
+
+      // ---- codice del rappresentante (dal link o QR) ----
+      let codiceAgente = "";
+      try { codiceAgente = localStorage.getItem("carminello-agente") || ""; } catch (_) {}
+      if (codiceAgente) App.ready.then(async () => {
+        const { data } = await App.db.rpc("agente_da_codice", { p_codice: codiceAgente });
+        const a = data && data[0];
+        if (!a) { codiceAgente = ""; return; }
+        el("reg-agente-nome").textContent = `${a.nome || ""} ${a.cognome || ""}`.trim(); el("reg-agente").hidden = false;
+        const rb = document.querySelector("input[name=tipo][value=b2b]"); if (rb && !App.user) { rb.checked = true; rb.dispatchEvent(new Event("change", { bubbles: true })); }
+        if (!App.user) { el("tab-reg") && el("tab-reg").click(); }
+      });
       el("rec-form").addEventListener("submit", async e => {
         e.preventDefault(); errBox("n-err", "");
         if (el("n-pass").value.length < 8) { errBox("n-err", Lang.t("acc.errPassLen")); return; }
@@ -316,6 +334,8 @@
         el("up-card").hidden = p.tipo !== "b2c";
         el("p-b2b").hidden = p.tipo === "b2c";
         el("me-b2b").hidden = p.tipo === "b2c";
+        el("me-agente").hidden = !p.agente_id;
+        if (p.agente_id) App.db.rpc("mio_agente").then(({ data }) => { const a = data && data[0]; if (a) el("me-agente-txt").textContent = `${a.nome || ""} ${a.cognome || ""}`.trim() + (a.telefono ? " · " + a.telefono : ""); else el("me-agente").hidden = true; });
         if (p.tipo !== "b2c") { el("me-b2b").className = "notice " + (p.approvato ? "ok" : "warn"); el("me-b2b-txt").textContent = p.approvato ? Lang.t("acc.steps.3ok") : Lang.t("acc.steps.3wait"); el("me-step3").className = p.approvato ? "" : "wait"; }
         el("p-company").value = p.ragione_sociale || ""; el("p-piva").value = p.piva || ""; el("p-sdi").value = p.sdi || ""; el("p-pec").value = p.pec || "";
         el("p-nome").value = p.nome || ""; el("p-cognome").value = p.cognome || ""; el("p-tel").value = p.telefono || "";
