@@ -72,7 +72,13 @@ const App = (function () {
     });
   })();
 
-  async function logout() { if (db) await db.auth.signOut(); user = null; profile = null; Cart.clear(); fire(); }
+  function uscitaSicura(client, chiave) {
+    // 1) cancella la sessione sul dispositivo (non può fallire) 2) avvisa il server 3) pulizia manuale per sicurezza
+    return client.auth.signOut({ scope: "local" }).catch(() => {}).then(() => client.auth.signOut({ scope: "global" }).catch(() => {})).finally(() => {
+      try { Object.keys(localStorage).forEach(k => { if (k === chiave || k.startsWith(chiave + "-") || (chiave === "" && /^sb-.*-auth-token/.test(k))) localStorage.removeItem(k); }); } catch (_) {}
+    });
+  }
+  async function logout() { if (db) await uscitaSicura(db, ""); user = null; profile = null; Cart.clear(); fire(); }
   function requireLogin(next) {
     if (user) return true;
     location.href = "account.html?next=" + encodeURIComponent(next || location.pathname.split("/").pop() || "shop.html");
