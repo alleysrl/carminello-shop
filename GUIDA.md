@@ -188,3 +188,12 @@ Apri il sito → **Pannello** (compare solo se sei collegato con l'account ammin
 
 **Cose da non fare:** non caricare mai su GitHub file con chiavi segrete (SumUp, Brevo); non cancellare
 righe dalle tabelle `orders` a mano (annulla gli ordini dal pannello); non condividere la password del database.
+
+## Agenti (rappresentanti) e provvigioni
+
+- Un agente si registra dall'**app agenti** (blu): https://alleysrl.github.io/carminello-agenti/ → "Diventa agente". Ricevi push ed email "Nuovo agente da approvare".
+- Nella **dashboard → Agenti** apri la sua scheda, scrivi la provvigione (% sulla merce degli ordini pagati) e premi "Salva e approva": gli arriva l'email con percentuale, codice e link.
+- L'agente registra i clienti sul posto (Partita IVA, email, telefono): il cliente riceve l'email per scegliere la password e tu vedi "Nuovo esercente da attivare · portato da …". Attivi il cliente con il prezzo come sempre.
+- In alternativa il cliente si registra dal link/QR dell'agente e resta collegato a lui. Puoi anche collegare o scollegare un agente dalla scheda cliente.
+- Ogni ordine salva agente e provvigione del giorno. Nella dashboard → Agenti c'è il tabellone per mese: quando paghi un agente premi "Segna liquidata".
+- Per vedere l'app agenti senza account: https://alleysrl.github.io/carminello-agenti/?demo=1
