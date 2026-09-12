@@ -6,6 +6,8 @@ const App = (function () {
   "use strict";
 
   const configured = CONFIG.SUPABASE_URL.indexOf("INCOLLA") === -1 && CONFIG.SUPABASE_KEY.indexOf("INCOLLA") === -1;
+  // Arrivo da "Esci": prima di tutto butta via ogni sessione salvata, anche se il file vecchio era in cache
+  if (/[?&]esci=1/.test(location.search)) { try { Object.keys(localStorage).forEach(k => { if (/^sb-.*-auth-token/.test(k)) localStorage.removeItem(k); }); sessionStorage.clear(); } catch (_) {} }
   const db = configured && window.supabase ? window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY) : null;
 
   let user = null, profile = null;
