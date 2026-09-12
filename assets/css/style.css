@@ -295,3 +295,7 @@ table.data input, table.data select { padding: .4rem .6rem; font-size: .92rem; }
 .done-steps { counter-reset: s; list-style: none; padding: 0; margin: 1rem 0; }
 .done-steps li { counter-increment: s; padding: .6rem 0 .6rem 2.6rem; position: relative; border-bottom: 1px dashed var(--line); }
 .done-steps li::before { content: counter(s); position: absolute; left: 0; top: .5rem; width: 30px; height: 30px; border-radius: 50%; background: var(--terra); color: #fff; font-weight: 700; display: grid; place-items: center; }
+
+/* ---- Telefono: niente selezione del testo al tocco (evita la ricerca Google), tranne nei campi da compilare ---- */
+body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+input, textarea, select, [contenteditable="true"], .selezionabile { -webkit-user-select: text; user-select: text; }
