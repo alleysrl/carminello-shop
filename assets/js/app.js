@@ -138,7 +138,7 @@ const App = (function () {
       <div class="ftr-in">
         <div class="ftr-col brand-col">
           <img src="assets/img/logo-white.png" alt="Carminello" width="160" height="64">
-          <p>${esc(A.ragione_sociale)}<br>${esc(A.indirizzo)}<br>P.IVA ${esc(A.piva)} · REA ${esc(A.rea)}</p>
+          <p>${esc(A.ragione_sociale)}<br>${esc(A.indirizzo)}<br>P.IVA ${esc(A.piva)} · REA ${esc(A.rea)} <span style="opacity:.55;font-size:.8em">· v. ${esc(CONFIG.VERSIONE || "")}</span></p>
         </div>
         <div class="ftr-col">
           <h4 data-i18n="footer.links">Informazioni</h4>
@@ -175,6 +175,8 @@ const App = (function () {
   document.addEventListener("lang:change", renderPendingBanner);
 
   function init() {
+    // Pagina ripescata dalla memoria del browser (tasto indietro): ricarica, così lo stato dell'account è sempre quello vero
+    window.addEventListener("pageshow", e => { if (e.persisted) location.reload(); });
     try { const ca = qs("agente"); if (ca) localStorage.setItem("carminello-agente", ca.toUpperCase().replace(/[^A-Z0-9]/g, "")); } catch (_) {}
     renderHeader(); renderFooter(); Lang.apply();
     ready.then(renderPendingBanner);
