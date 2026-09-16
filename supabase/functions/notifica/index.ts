@@ -84,7 +84,7 @@ async function emailBenvenutoAzienda(c: any, site: string) {
       <ol style="line-height:1.7">
         ${c.origine === "invito" ? `<li><b>Scegli la tua password</b> dal link nell'email "Sei stato invitato", se non l'hai già fatto.</li>` : `<li><b>Conferma la tua email</b>, se non l'hai già fatto, con il link che ti abbiamo inviato.</li>`}
         <li><b>Ti contattiamo noi</b> per concordare il prezzo riservato e attivare l'account. Di solito entro un giorno lavorativo.</li>
-        <li><b>Da quel momento ordini da solo</b>, quando vuoi, anche con pagamento alla consegna.</li>
+        <li><b>Da quel momento ordini da solo</b>, quando vuoi, pagando con bonifico bancario.</li>
       </ol>
       <p>Fino all'attivazione il sito ti mostra "Account in attesa di attivazione": è normale. Hai fretta? Scrivici su WhatsApp al +39 379 3504521.</p>`));
 }
@@ -190,7 +190,7 @@ Deno.serve(async (req) => {
         layout("Il tuo account è attivo!", `
           <p>Ciao ${esc(c.nome || "")}, abbiamo attivato l'account di <b>${esc(c.ragione_sociale || "")}</b>. Il tuo prezzo riservato:</p>
           <ul style="line-height:1.7">${righe || "<li>come concordato</li>"}</ul>
-          <p>Prezzi IVA inclusa. Puoi pagare con carta, bonifico o contrassegno. Spedizione gratuita da 10 cartoni.</p>
+          <p>Prezzi IVA inclusa. Il pagamento è con bonifico bancario: i dati li trovi alla fine di ogni ordine. Spedizione gratuita da 10 cartoni.</p>
           ${site ? `<p><a href="${site}/shop.html" style="background:#c8452b;color:#fff;padding:10px 18px;border-radius:999px;text-decoration:none">Fai il tuo primo ordine</a></p>` : ""}`));
     }
 

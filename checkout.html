@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-title" content="Carminello">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/style.css?v=2026-09-12g">
+  <link rel="stylesheet" href="assets/css/style.css?v=2026-09-16b">
   <title>Completa l'ordine — Carminello</title>
 </head>
 <body>
@@ -49,8 +49,9 @@
 
         <div class="card">
           <h3 data-i18n="co.payTitle">Come vuoi pagare?</h3>
+          <p class="muted small" id="pm-b2b-note" data-i18n="co.b2bBank" hidden>Per esercenti e rivenditori il pagamento è con bonifico bancario: alla fine dell'ordine ti mostriamo i dati.</p>
           <div class="choice">
-            <label><input type="radio" name="pm" value="carta" checked><span><b data-i18n="co.card">Carta di credito o debito</b><small data-i18n="co.cardD">Pagamento sicuro con SumUp. L'ordine parte subito.</small></span></label>
+            <label id="pm-card"><input type="radio" name="pm" value="carta" checked><span><b data-i18n="co.card">Carta di credito o debito</b><small data-i18n="co.cardD">Pagamento sicuro con SumUp. L'ordine parte subito.</small></span></label>
             <label><input type="radio" name="pm" value="bonifico"><span><b data-i18n="co.bank">Bonifico bancario</b><small data-i18n="co.bankD">Ti mostriamo l'IBAN. Spediamo appena riceviamo il bonifico.</small></span></label>
             <label id="pm-cod" hidden><input type="radio" name="pm" value="contrassegno"><span><b data-i18n="co.cod">Contrassegno</b><small data-i18n="co.codD">Paghi alla consegna, in contanti. Supplemento di 5 €.</small></span></label>
           </div>
@@ -77,10 +78,10 @@
 
   <footer id="site-footer"></footer>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="assets/js/config.js?v=2026-09-12g"></script>
-  <script src="assets/js/i18n.js?v=2026-09-12g"></script>
-  <script src="assets/js/cart.js?v=2026-09-12g"></script>
-  <script src="assets/js/app.js?v=2026-09-12g"></script>
+  <script src="assets/js/config.js?v=2026-09-16b"></script>
+  <script src="assets/js/i18n.js?v=2026-09-16b"></script>
+  <script src="assets/js/cart.js?v=2026-09-16b"></script>
+  <script src="assets/js/app.js?v=2026-09-16b"></script>
   <script>
     (function () {
       const el = id => document.getElementById(id);
@@ -106,7 +107,12 @@
         if (!t.cartoni) { el("empty").hidden = false; el("form").hidden = true; return; }
         el("empty").hidden = true; el("form").hidden = false;
         const p = App.profile || {};
-        el("pm-cod").hidden = !App.b2bAttivo();
+        // Esercenti e rivenditori pagano solo con bonifico; i privati scelgono tra carta e bonifico
+        const soloBonifico = App.isB2B();
+        el("pm-cod").hidden = true;
+        el("pm-card").hidden = soloBonifico;
+        if (soloBonifico) document.querySelector("input[name=pm][value=bonifico]").checked = true;
+        el("pm-b2b-note").hidden = !soloBonifico;
         el("f-company-wrap").hidden = !App.isB2B();
         el("f-company").value = p.ragione_sociale || "";
         el("f-nome").value = p.nome || ""; el("f-cognome").value = p.cognome || ""; el("f-tel").value = p.telefono || "";

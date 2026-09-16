@@ -150,14 +150,14 @@ Apri il sito → **Pannello** (compare solo se sei collegato con l'account ammin
 **Ordini**
 - *Da pagare*: bonifici non ancora arrivati e carte non completate. Quando vedi il bonifico sul conto,
   premi **Segna pagato**: l'ordine passa in "Da spedire" e il cliente riceve l'email.
-- *Da spedire*: pagati (o in contrassegno). Quando spedisci, premi **Segna spedito**.
+- *Da spedire*: pagati. Quando spedisci, premi **Segna spedito**.
 - **Dettagli** mostra indirizzo, telefono, note e righe dell'ordine.
 - **Verifica SumUp** ricontrolla un pagamento con carta se qualcosa si fosse perso.
 
 **Clienti**
 - *Locali da attivare*: ogni nuovo locale registrato compare qui. Lo chiami, concordate il prezzo, scrivi il
   prezzo del cartone da 20 e premi **Salva e attiva**. Da quel momento vede il suo prezzo e ordina da solo
-  (anche in contrassegno, +5 €).
+  pagando con bonifico bancario (per esercenti e rivenditori è l'unico metodo).
 - Puoi cambiare il prezzo di un locale in qualsiasi momento (vale dagli ordini successivi) o **sospenderlo**.
 
 **Prodotti**
