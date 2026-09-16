@@ -20,7 +20,7 @@
 
   <main class="wrap">
     <div class="page-head"><span class="kicker">Riservato</span><h1>Pannello Carminello</h1><p><a class="btn sm basil" href="https://alleysrl.github.io/carminello-dashboard/" target="_blank" rel="noopener">Apri la Dashboard: clienti, statistiche, da chiamare</a></p></div>
-    <div id="denied" class="notice warn" hidden>Questa pagina è riservata al titolare. <a href="account.html">Accedi</a> con l'account amministratore.</div>
+    <div id="denied" class="notice warn" hidden>Questa pagina è riservata al titolare. <a href="account.html?next=admin.html%23impostazioni">Accedi</a> con l'account amministratore (alleysrl2022@gmail.com), poi torna qui.</div>
 
     <div id="panel" hidden>
       <div class="stat-grid">
@@ -30,7 +30,7 @@
         <div class="stat"><b id="st-mese">0 €</b><span>Incassato nel mese</span></div>
       </div>
 
-      <div class="tabs"><button class="on" data-tab="ordini">Ordini</button><button data-tab="clienti">Clienti</button><button data-tab="prodotti">Prodotti</button><button data-tab="impostazioni">Impostazioni</button></div>
+      <div class="tabs"><button class="on" data-tab="ordini">Ordini</button><button data-tab="clienti">Clienti</button><button data-tab="prodotti">Prodotti</button><button data-tab="impostazioni">Impostazioni e IBAN</button></div>
 
       <!-- ORDINI -->
       <section id="tab-ordini">
@@ -111,6 +111,9 @@
         document.querySelectorAll("[data-tab]").forEach(x => x.classList.toggle("on", x === b));
         ["ordini", "clienti", "prodotti", "impostazioni"].forEach(t => el("tab-" + t).hidden = b.getAttribute("data-tab") !== t);
       }));
+      // admin.html#impostazioni (o #clienti, #prodotti) apre direttamente quella linguetta
+      function apriDaIndirizzo() { const t = location.hash.replace("#", ""); const b = document.querySelector('[data-tab="' + t + '"]'); if (b) b.click(); }
+      window.addEventListener("hashchange", apriDaIndirizzo); apriDaIndirizzo();
       el("modal-close").onclick = () => el("modal").hidden = true;
       function modal(html) { el("modal-body").innerHTML = html; el("modal").hidden = false; }
 
