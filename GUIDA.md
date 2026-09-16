@@ -197,3 +197,8 @@ righe dalle tabelle `orders` a mano (annulla gli ordini dal pannello); non condi
 - In alternativa il cliente si registra dal link/QR dell'agente e resta collegato a lui. Puoi anche collegare o scollegare un agente dalla scheda cliente.
 - Ogni ordine salva agente e provvigione del giorno. Nella dashboard → Agenti c'è il tabellone per mese: quando paghi un agente premi "Segna liquidata".
 - Per vedere l'app agenti senza account: https://alleysrl.github.io/carminello-agenti/?demo=1
+
+## Foto della galleria
+
+- In home la galleria è una sola riga da scorrere (col dito o con le frecce): aggiungere foto non allunga la pagina. Il pulsante "Vedi tutte le foto" apre la pagina `galleria.html` con tutte le foto; toccandone una si apre a schermo intero.
+- L'elenco delle foto, nell'ordine in cui compaiono, sta in `assets/js/galleria.js`. Per aggiungerne: manda le foto a Claude, che le ridimensiona, le mette in `assets/img/` e aggiorna l'elenco. Poi push da GitHub Desktop.

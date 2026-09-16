@@ -46,7 +46,7 @@ it: {
   "how.s4t": "Gusta", "how.s4": "Una pizza croccante e leggera, in qualsiasi momento.",
   "how.tips": "Consiglio: forno statico al massimo (250 °C), base direttamente sulla griglia o su pietra, 4–6 minuti.",
 
-  "gallery.kicker": "Galleria", "gallery.title": "Lasciati ispirare",
+  "gallery.kicker": "Galleria", "gallery.title": "Lasciati ispirare", "gallery.all": "Vedi tutte le foto", "gallery.cta": "Ordina le basi",
   "gallery.sub": "Scatta una foto alla tua pizza e condividila con noi: le più belle finiscono qui e sui nostri social.",
 
   "rev.kicker": "Cosa dicono i clienti", "rev.title": "Leggere, croccanti, pronte in un attimo",
@@ -200,7 +200,7 @@ en: {
   "how.s4t": "Enjoy", "how.s4": "A crispy, light pizza, any time.",
   "how.tips": "Tip: conventional oven at max (250 °C), base straight on the rack or a stone, 4–6 minutes.",
 
-  "gallery.kicker": "Gallery", "gallery.title": "Be inspired",
+  "gallery.kicker": "Gallery", "gallery.title": "Be inspired", "gallery.all": "See all photos", "gallery.cta": "Order the bases",
   "gallery.sub": "Take a photo of your pizza and share it with us: the best ones end up here and on our socials.",
 
   "rev.kicker": "What customers say", "rev.title": "Light, crispy, ready in no time",
