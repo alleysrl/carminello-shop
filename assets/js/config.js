@@ -8,7 +8,7 @@
       di Supabase, come spiegato in GUIDA.md.
    ========================================================================== */
 const CONFIG = {
-  VERSIONE: "2026-09-16c",   // compare in fondo al sito: serve a capire quale versione ha il telefono
+  VERSIONE: "2026-09-17a",   // compare in fondo al sito: serve a capire quale versione ha il telefono
 
   // ---- Supabase (database, account, ordini) ---------------------------------
   // Si trovano su supabase.com → il tuo progetto → Project Settings → API

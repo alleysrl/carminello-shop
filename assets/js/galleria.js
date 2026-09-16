@@ -1,6 +1,8 @@
 /* ============================================================================
    GALLERIA — l'elenco delle foto sta tutto qui.
    Per aggiungere una foto: mettila in assets/img/ e scrivi il nome nell'elenco.
+   Usa sempre un nome NUOVO, mai quello di una foto tolta: l'app installata
+   tiene le foto in memoria per nome (sw.js) e mostrerebbe quella vecchia.
    L'ordine dell'elenco è l'ordine in cui compaiono (la prima è la più in vista).
    ========================================================================== */
 const GALLERIA = [
@@ -11,7 +13,20 @@ const GALLERIA = [
   "gallery-7.webp",
   "gallery-8.webp",
   "gallery-9.webp",
-  "home-2.webp"
+  "home-2.webp",
+  "gallery-10.webp",
+  "gallery-11.webp",
+  "gallery-12.webp",
+  "gallery-13.webp",
+  "gallery-14.webp",
+  "gallery-15.webp",
+  "gallery-16.webp",
+  "gallery-17.webp",
+  "gallery-18.webp",
+  "gallery-19.webp",
+  "gallery-20.webp",
+  "gallery-21.webp",
+  "gallery-22.webp"
 ];
 
 const Galleria = (function () {
