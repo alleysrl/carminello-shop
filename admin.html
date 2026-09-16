@@ -61,7 +61,7 @@
               <h3>Bonifico bancario</h3>
               <p class="muted small">Questi dati vengono mostrati al cliente che sceglie il bonifico e nell'email di conferma.</p>
               <div class="field"><label>Intestatario</label><input id="i-intestatario"></div>
-              <div class="field"><label>IBAN</label><input id="i-iban" style="font-family:monospace"></div>
+              <div class="field"><label>IBAN</label><input id="i-iban" style="font-family:monospace" autocomplete="off" spellcheck="false" placeholder="IT00 X000 0000 0000 0000 0000 000"><small class="muted">Viene controllato prima del salvataggio: un IBAN sbagliato non si salva.</small></div>
               <div class="row"><div class="field"><label>Banca (facoltativo)</label><input id="i-banca"></div><div class="field"><label>BIC/SWIFT (facoltativo)</label><input id="i-bic"></div></div>
               <button class="btn" id="i-save-bonifico">Salva bonifico</button>
             </div>
@@ -251,7 +251,21 @@
         const { error } = await App.db.rpc("admin_salva_impostazione", { p_chiave: chiave, p_valore: valore });
         if (error) App.toast(error.message, "err"); else { App.toast(msg || "Salvato", "ok"); loadImpostazioni(); }
       }
-      el("i-save-bonifico").onclick = () => salvaImp("bonifico", { intestatario: el("i-intestatario").value.trim(), iban: el("i-iban").value.replace(/\s+/g, "").toUpperCase(), banca: el("i-banca").value.trim(), bic: el("i-bic").value.trim() }, "Dati bonifico salvati");
+      // IBAN: controllo delle cifre di verifica (un errore di battitura manderebbe i bonifici altrove)
+      function ibanValido(iban) {
+        if (!/^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(iban)) return false;
+        if (iban.startsWith("IT") && iban.length !== 27) return false;
+        const num = (iban.slice(4) + iban.slice(0, 4)).replace(/[A-Z]/g, c => c.charCodeAt(0) - 55);
+        let r = 0; for (const d of num) r = (r * 10 + +d) % 97;
+        return r === 1;
+      }
+      el("i-save-bonifico").onclick = () => {
+        const iban = el("i-iban").value.replace(/\s+/g, "").toUpperCase();
+        if (!el("i-intestatario").value.trim()) { App.toast("Scrivi l'intestatario del conto", "err"); return; }
+        if (!ibanValido(iban)) { App.toast("IBAN non valido: controlla lettere e cifre (in Italia sono 27 caratteri, inizia con IT)", "err"); el("i-iban").focus(); return; }
+        el("i-iban").value = iban.replace(/(.{4})/g, "$1 ").trim();
+        salvaImp("bonifico", { intestatario: el("i-intestatario").value.trim(), iban, banca: el("i-banca").value.trim(), bic: el("i-bic").value.trim().toUpperCase() }, "Dati bonifico salvati: li vedono i clienti che scelgono il bonifico");
+      };
       el("i-save-notifiche").onclick = () => salvaImp("notifiche", { email: el("i-email").value.trim() }, "Email avvisi salvata");
       el("i-save-cod").onclick = () => salvaImp("contrassegno", { supplemento: Number(el("i-cod").value || 0) }, "Supplemento salvato");
       el("i-sped-add").onclick = () => { const f = readSped(); f.push({ fino_a: null, costo: 0 }); renderSped(f); };
