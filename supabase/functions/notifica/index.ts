@@ -186,6 +186,22 @@ Deno.serve(async (req) => {
       const c = record;
       const { data: prezzi } = await admin.from("prezzi_cliente").select("prezzo, products(nome_it, pezzi)").eq("user_id", c.id);
       const righe = (prezzi || []).map((x: any) => `<li><b>${esc(x.products?.nome_it || "Cartone")}</b>: ${eur(x.prezzo)} a cartone${x.products?.pezzi ? " (" + eur(Number(x.prezzo) / x.products.pezzi) + " a base)" : ""}</li>`).join("");
+      // Se ad attivarlo è stato un agente (fissando il prezzo), il titolare lo viene a sapere.
+      if (c.attivato_da && c.attivato_da !== c.id) {
+        const { data: ag } = await admin.from("profiles").select("nome,cognome,ruolo,codice_agente").eq("id", c.attivato_da).maybeSingle();
+        if (ag?.ruolo === "agente") {
+          const chi = await nomeAgente(admin, c.attivato_da);
+          const listino = (prezzi || []).map((x: any) => `${eur(x.prezzo)} a cartone${x.products?.pezzi ? " (" + eur(Number(x.prezzo) / x.products.pezzi) + " a base)" : ""}`).join(" · ");
+          try { await inviaPush(admin, `Cliente attivato da ${chi}`, `${c.ragione_sociale || c.email} · ${listino}`, `#/cliente/${c.id}`); } catch (e) { console.error("push attivazione agente", e); }
+          await sendMail(ownerEmail, `${chi} ha attivato ${c.ragione_sociale || c.email}`,
+            layout("Cliente attivato da un agente", `
+              <p><b>${esc(chi)}</b> ha fissato il prezzo e attivato un cliente: da adesso può ordinare.</p>
+              <p><b>${esc(c.ragione_sociale || c.email)}</b><br>${esc(c.nome || "")} ${esc(c.cognome || "")}<br>${esc(c.email || "")} · ${esc(c.telefono || "")}</p>
+              <p><b>Prezzo fissato:</b> ${esc(listino || "—")}</p>
+              <p>Se il prezzo non ti convince puoi cambiarlo tu dal pannello, o sospendere il cliente.</p>
+              <p><a href="https://alleysrl.github.io/carminello-dashboard/#/cliente/${c.id}" style="background:#c8452b;color:#fff;padding:10px 18px;border-radius:999px;text-decoration:none">Apri la scheda</a></p>`));
+        }
+      }
       await sendMail(c.email, `Carminello — il tuo account è attivo, puoi ordinare`,
         layout("Il tuo account è attivo!", `
           <p>Ciao ${esc(c.nome || "")}, abbiamo attivato l'account di <b>${esc(c.ragione_sociale || "")}</b>. Il tuo prezzo riservato:</p>

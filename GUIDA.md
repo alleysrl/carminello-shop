@@ -193,7 +193,9 @@ righe dalle tabelle `orders` a mano (annulla gli ordini dal pannello); non condi
 
 - Un agente si registra dall'**app agenti** (blu): https://alleysrl.github.io/carminello-agenti/ → "Diventa agente". Ricevi push ed email "Nuovo agente da approvare".
 - Nella **dashboard → Agenti** apri la sua scheda, scrivi la provvigione (% sulla merce degli ordini pagati) e premi "Salva e approva": gli arriva l'email con percentuale, codice e link.
-- L'agente registra i clienti sul posto (Partita IVA, email, telefono): il cliente riceve l'email per scegliere la password e tu vedi "Nuovo esercente da attivare · portato da …". Attivi il cliente con il prezzo come sempre.
+- L'agente registra i clienti sul posto (Partita IVA, email, telefono): il cliente riceve l'email per scegliere la password e tu vedi "Nuovo esercente registrato · portato da …".
+- **Il prezzo lo fissa l'agente**, dalla scheda del cliente nella sua app: appena lo salva il cliente è attivo e può ordinare, senza aspettare te. Il prezzo non può scendere sotto **1,70 € a base**, cioè **34,00 € per il cartone da 20**; sopra decide lui (se vende a 35,00 € il margine è suo lavoro). Il limite è scritto nel database, non solo nell'app.
+- Quando un agente attiva un cliente ricevi push ed email con il prezzo che ha fatto. Dal pannello puoi sempre cambiare quel prezzo (tu non hai il limite dei 1,70 €) o sospendere il cliente: un cliente sospeso da te l'agente non può riattivarlo.
 - In alternativa il cliente si registra dal link/QR dell'agente e resta collegato a lui. Puoi anche collegare o scollegare un agente dalla scheda cliente.
 - Ogni ordine salva agente e provvigione del giorno. Nella dashboard → Agenti c'è il tabellone per mese: quando paghi un agente premi "Segna liquidata".
 - Per vedere l'app agenti senza account: https://alleysrl.github.io/carminello-agenti/?demo=1
