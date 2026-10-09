@@ -100,7 +100,7 @@ insert into public.products (id, canale, nome_it, nome_en, descr_it, descr_en, p
   'Carminello 33 cm Pizza Base — box of 8',
   'Base pizza artigianale da 33 cm con bordo rialzato, cotta a infrarossi. Impasto a lunga maturazione, alta digeribilità, farine 100% italiane. Si conserva oltre 30 giorni a temperatura ambiente, senza frigorifero.',
   'Handcrafted 33 cm pizza base with raised crust, infrared-baked. Long-fermented dough, highly digestible, 100% Italian flours. Keeps for over 30 days at room temperature, no fridge needed.',
-  8, 14.99, 'assets/img/base-classica.webp', true, 1),
+  8, 19.90, 'assets/img/base-classica.webp', true, 1),
  ('base-33-cartone-20', 'b2b',
   'Base Pizza Carminello 33 cm — cartone da 20 (buste da 2)',
   'Carminello 33 cm Pizza Base — box of 20 (packs of 2)',

@@ -8,7 +8,7 @@
       di Supabase, come spiegato in GUIDA.md.
    ========================================================================== */
 const CONFIG = {
-  VERSIONE: "2026-09-17a",   // compare in fondo al sito: serve a capire quale versione ha il telefono
+  VERSIONE: "2026-10-09a",   // compare in fondo al sito: serve a capire quale versione ha il telefono
 
   // ---- Supabase (database, account, ordini) ---------------------------------
   // Si trovano su supabase.com → il tuo progetto → Project Settings → API
@@ -67,7 +67,7 @@ const CONFIG = {
       nome_en: "Carminello 33 cm Pizza Base — box of 8",
       descr_it: "Base pizza artigianale da 33 cm con bordo rialzato, cotta a infrarossi. Impasto a lunga maturazione, alta digeribilità, farine 100% italiane. Si conserva oltre 30 giorni a temperatura ambiente, senza frigorifero.",
       descr_en: "Handcrafted 33 cm pizza base with raised crust, infrared-baked. Long-fermented dough, highly digestible, 100% Italian flours. Keeps for over 30 days at room temperature, no fridge needed.",
-      pezzi: 8, prezzo: 14.99, immagine: "assets/img/base-classica.webp"
+      pezzi: 8, prezzo: 19.90, immagine: "assets/img/base-classica.webp"
     },
     {
       id: "base-33-cartone-20", canale: "b2b", attivo: true, ordine: 2,

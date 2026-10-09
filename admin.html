@@ -11,7 +11,7 @@
   <meta name="apple-mobile-web-app-title" content="Carminello">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/style.css?v=2026-09-17a">
+  <link rel="stylesheet" href="assets/css/style.css?v=2026-10-09a">
   <meta name="robots" content="noindex">
   <title>Pannello — Carminello</title>
 </head>
@@ -93,10 +93,10 @@
 
   <footer id="site-footer"></footer>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script src="assets/js/config.js?v=2026-09-17a"></script>
-  <script src="assets/js/i18n.js?v=2026-09-17a"></script>
-  <script src="assets/js/cart.js?v=2026-09-17a"></script>
-  <script src="assets/js/app.js?v=2026-09-17a"></script>
+  <script src="assets/js/config.js?v=2026-10-09a"></script>
+  <script src="assets/js/i18n.js?v=2026-10-09a"></script>
+  <script src="assets/js/cart.js?v=2026-10-09a"></script>
+  <script src="assets/js/app.js?v=2026-10-09a"></script>
   <script>
     (function () {
       const el = id => document.getElementById(id);
@@ -119,7 +119,7 @@
 
       // ---------- ORDINI ----------
       async function loadOrdini() {
-        const { data, error } = await App.db.from("orders").select("*, profiles(email, nome, cognome, ragione_sociale, tipo, telefono)").order("created_at", { ascending: false }).limit(500);
+        const { data, error } = await App.db.from("orders").select("*, profiles!orders_user_id_fkey(email, nome, cognome, ragione_sociale, tipo, telefono)").order("created_at", { ascending: false }).limit(500);
         if (error) { App.toast(error.message, "err"); return; }
         ordini = data || []; renderOrdini(); renderStats();
       }
@@ -178,7 +178,7 @@
       // ---------- CLIENTI ----------
       async function loadClienti() {
         const [{ data: p, error }, { data: pr }] = await Promise.all([
-          App.db.from("profiles").select("*, prezzi_cliente(product_id, prezzo)").order("created_at", { ascending: false }),
+          App.db.from("profiles").select("*, prezzi_cliente!prezzi_cliente_user_id_fkey(product_id, prezzo)").order("created_at", { ascending: false }),
           App.db.from("products").select("*").eq("canale", "b2b").order("ordine")
         ]);
         if (error) { App.toast(error.message, "err"); return; }
@@ -220,12 +220,12 @@
           <td><input data-p="${p.id}|nome_en" value="${esc(p.nome_en || "")}"></td>
           <td>${p.canale === "b2b" ? "Locali" : "Privati"}</td>
           <td><input type="number" min="1" data-p="${p.id}|pezzi" value="${p.pezzi}" style="max-width:80px"></td>
-          <td>${p.canale === "b2c" ? '<input type="number" step="0.01" min="0" data-p="' + p.id + '|prezzo" value="' + (p.prezzo != null ? p.prezzo : "") + '" style="max-width:110px">' : '<span class="muted small">per cliente</span>'}</td>
+          <td>${p.canale === "b2c" ? '<input type="text" inputmode="decimal" data-dec="1" data-p="' + p.id + '|prezzo" value="' + (p.prezzo != null ? String(p.prezzo.toFixed ? p.prezzo.toFixed(2) : p.prezzo).replace(".", ",") : "") + '" style="max-width:110px">' : '<span class="muted small">per cliente</span>'}</td>
           <td><input type="checkbox" data-p="${p.id}|attivo" ${p.attivo ? "checked" : ""} style="width:22px;height:22px"></td>
           <td><button class="btn sm" data-psave="${p.id}">Salva</button></td></tr>`).join("");
         el("prod-body").querySelectorAll("[data-psave]").forEach(b => b.onclick = async () => {
           const id = b.getAttribute("data-psave"); const dati = { id };
-          el("prod-body").querySelectorAll('[data-p^="' + id + '|"]').forEach(i => { const k = i.getAttribute("data-p").split("|")[1]; dati[k] = i.type === "checkbox" ? i.checked : (i.type === "number" ? (i.value === "" ? null : Number(i.value)) : i.value.trim()); });
+          el("prod-body").querySelectorAll('[data-p^="' + id + '|"]').forEach(i => { const k = i.getAttribute("data-p").split("|")[1]; dati[k] = i.type === "checkbox" ? i.checked : i.getAttribute("data-dec") ? (i.value.trim() === "" ? null : Number(i.value.replace(",", ".").trim())) : (i.type === "number" ? (i.value === "" ? null : Number(i.value)) : i.value.trim()); });
           const { error } = await App.db.rpc("admin_salva_prodotto", { p_dati: dati });
           if (error) App.toast(error.message, "err"); else { App.toast("Prodotto salvato", "ok"); loadProdotti(); }
         });
