@@ -179,7 +179,9 @@ const App = (function () {
     window.addEventListener("pageshow", e => { if (e.persisted) location.reload(); });
     try { const ca = qs("agente"); if (ca) localStorage.setItem("carminello-agente", ca.toUpperCase().replace(/[^A-Z0-9]/g, "")); } catch (_) {}
     renderHeader(); renderFooter(); Lang.apply();
-    ready.then(renderPendingBanner);
+    // Quando sappiamo chi è entrato, l'intestazione va rifatta: altrimenti il titolare
+    // non vede la voce "Pannello" e al posto del nome resta scritto "Accedi".
+    ready.then(() => { renderHeader(); renderPendingBanner(); });
     document.addEventListener("cart:change", renderHeader);
     document.addEventListener("lang:change", () => { renderHeader(); renderFooter(); });
     if (!db) {
