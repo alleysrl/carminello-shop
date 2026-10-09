@@ -26,6 +26,8 @@ async function sendMail(to: string, subject: string, html: string) {
     headers: { "api-key": KEY, "Content-Type": "application/json" },
     body: JSON.stringify({
       sender: { name: Deno.env.get("SENDER_NAME") || "Carminello", email: Deno.env.get("SENDER_EMAIL") || "info@carminello.eu" },
+      // Brevo spedisce ma non riceve: se il cliente risponde, la risposta va qui.
+      replyTo: { email: Deno.env.get("REPLY_TO") || "info@carminello.eu", name: "Carminello" },
       to: [{ email: to }], subject, htmlContent: html,
     }),
   });
